@@ -1,0 +1,92 @@
+Manifest-Version: 1.0
+
+Name: install.rdf
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: 0ISJA7pa2fZGNGtfOyeChw==
+SHA1-Digest: HhcA8EPjwVXsXW6pkjQsUbtW2kA=
+
+Name: chrome.manifest
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: VclMKqQi4+Rsg78nJkkGCg==
+SHA1-Digest: ERMupBIa1nC8QVA9RBFSvRCeijQ=
+
+Name: nsIRequestPolicy.idl
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: 93oCOJZXikdMTSY5wIkxhA==
+SHA1-Digest: ttHlm9LkRydk488BiyQ8IOe61G0=
+
+Name: README
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: 6IfZq3sTTDTENL+Se1ZoIA==
+SHA1-Digest: iDJpM8K+fZKkpeqnpi0kVupmPDk=
+
+Name: chrome/requestpolicy.jar
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: ECXHUHZqOZQSQdS7HrRNUg==
+SHA1-Digest: cB5GKwnc4mCLu67FAJ1vxjKwewM=
+
+Name: components/nsIRequestPolicy.xpt
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: 89oXmni0AwxShMJNFd5gag==
+SHA1-Digest: FP3BCMc8LmmffVLjZzBAyak75uY=
+
+Name: components/requestpolicyService.js
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: YqUszLHLsTMPHU0dnE1eOg==
+SHA1-Digest: 5YKF09AjshtFaCBmLkGSy5NtuQE=
+
+Name: defaults/preferences/defaults.js
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: df58iLrFpi9uj8DvlfgL5Q==
+SHA1-Digest: 3H2oZMggIPaAVS3SMVROmXWX0ok=
+
+Name: modules/DomainUtil.jsm
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: LGcbLtZkSAcU1G7w0X9uDg==
+SHA1-Digest: LN8b5adL57l4ui5gtKOX2L12zVQ=
+
+Name: modules/FileUtil.jsm
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: JXglodn1rkAUHUX8QTvu+Q==
+SHA1-Digest: DRrzAooNwceASQo7f+YonGXz2OU=
+
+Name: modules/JSON.jsm
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: JC3jXYgZmGY8dlC6oJuiag==
+SHA1-Digest: Xdk/pnZl1irCsE9JWh9sR6Bzuno=
+
+Name: modules/Logger.jsm
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: y7yiuupeE8be1/OC/hgtQQ==
+SHA1-Digest: GYphEOuyZa/XIB0aCXTRgSMVWnA=
+
+Name: modules/Prompter.jsm
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: JqDpuw3klgGwcz+7SUMu9Q==
+SHA1-Digest: p6PSOpv9H4wkWHS3FOe+NYV1FiQ=
+
+Name: modules/RequestUtil.jsm
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: 0vTLZhjo/bLiz+7fwFxZBQ==
+SHA1-Digest: 16yfF6ju7sXiYiEEoPAOLbSV7ms=
+
+Name: modules/Services.jsm
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: 8IWEl2RW6r6/4ZGUjlVKxw==
+SHA1-Digest: DNgyn8Km9gaXvaBP9GINM7rK/64=
+
+Name: modules/Stats.jsm
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: aLTLUTfnI8ydhJO/NHl3Zw==
+SHA1-Digest: wtX/AW7FhQjHcId7CMMVmy4LNsQ=
+
+Name: modules/Util.jsm
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: C3FVXlOZMoaXt9BQqPUB9A==
+SHA1-Digest: Ilw2EVnubyvLaOyJoyB/3TNsMtQ=
+
+Name: LICENSE
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: OU/He5LKZm7blvdJOUw7Kg==
+SHA1-Digest: Crv5ZdQlnYCFCj+w8ddd9bPkbRA=
+
