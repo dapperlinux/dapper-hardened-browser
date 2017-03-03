@@ -1,0 +1,13 @@
+diff -up firefox-48.0/browser/app/profile/firefox.js.addons firefox-48.0/browser/app/profile/firefox.js
+--- firefox-48.0/browser/app/profile/firefox.js.addons	2016-07-26 10:56:48.598900568 +0200
++++ firefox-48.0/browser/app/profile/firefox.js	2016-07-26 11:05:45.199789758 +0200
+@@ -94,7 +94,8 @@ pref("extensions.systemAddon.update.url"
+ 
+ // Disable add-ons that are not installed by the user in all scopes by default.
+ // See the SCOPE constants in AddonManager.jsm for values to use here.
+-pref("extensions.autoDisableScopes", 15);
++pref("extensions.autoDisableScopes", 0);
++pref("extensions.showMismatchUI", false);
+ 
+ // Add-on content security policies.
+ pref("extensions.webextensions.base-content-security-policy", "script-src 'self' https://* moz-extension: blob: filesystem: 'unsafe-eval' 'unsafe-inline'; object-src 'self' https://* moz-extension: blob: filesystem:;");
