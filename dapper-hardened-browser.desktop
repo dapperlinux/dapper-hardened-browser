@@ -1,6 +1,6 @@
 [Desktop Entry]
 Version=1.0
-Name=Dapper Hardend Browser
+Name=Dapper Hardened Browser
 GenericName=Web Browser
 Comment=Browse the Web
 Exec=dapper-hardened-browser %u

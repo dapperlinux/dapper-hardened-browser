@@ -48,7 +48,7 @@ case $MOZ_ARCH in
 		;;
 esac
 
-MOZ_FIREFOX_FILE="firefox"
+MOZ_FIREFOX_FILE="dapper-hardened-browser"
 DAPPER_LINUX_FOLDER="dapper-hardened-browser"
 
 if [ ! -r $MOZ_LIB_DIR/$DAPPER_LINUX_FOLDER/$MOZ_FIREFOX_FILE ]; then

@@ -88,7 +88,7 @@ ExcludeArch: armv7hl
 
 %if !%{debug_build}
 %ifarch %{ix86} x86_64
-%define enable_mozilla_crashreporter       1
+%define enable_mozilla_crashreporter       0
 %else
 %define enable_mozilla_crashreporter       0
 %endif
@@ -106,7 +106,7 @@ Source0:        https://archive.mozilla.org/pub/firefox/releases/%{version}%{?pr
 #Source1:        firefox-langpacks-%{version}%{?pre_version}-20170126.tar.xz
 %endif
 Source10:       firefox-mozconfig
-Source12:       firefox-redhat-default-prefs.js
+Source12:       browser-redhat-default-prefs.js
 Source20:       dapper-hardened-browser.desktop
 Source21:       firefox.sh.in
 Source23:       dapper-hardened-browser.1
@@ -546,7 +546,7 @@ desktop-file-install --dir $RPM_BUILD_ROOT%{_datadir}/applications %{SOURCE20}
 %{__cat} %{SOURCE21} > $RPM_BUILD_ROOT%{_bindir}/%{name}
 %{__chmod} 755 $RPM_BUILD_ROOT%{_bindir}/%{name}
 
-%{__install} -p -D -m 644 %{SOURCE23} $RPM_BUILD_ROOT%{_mandir}/man1/firefox.1
+%{__install} -p -D -m 644 %{SOURCE23} $RPM_BUILD_ROOT%{_mandir}/man1/dapper-hardened-browser.1
 
 %{__rm} -f $RPM_BUILD_ROOT/%{mozappdir}/firefox-config
 %{__rm} -f $RPM_BUILD_ROOT/%{mozappdir}/update-settings.ini
@@ -554,13 +554,8 @@ desktop-file-install --dir $RPM_BUILD_ROOT%{_datadir}/applications %{SOURCE20}
 for s in 16 22 24 32 48 256; do
     %{__mkdir_p} $RPM_BUILD_ROOT%{_datadir}/icons/hicolor/${s}x${s}/apps
     %{__cp} -p browser/branding/official/default${s}.png \
-               $RPM_BUILD_ROOT%{_datadir}/icons/hicolor/${s}x${s}/apps/firefox.png
+               $RPM_BUILD_ROOT%{_datadir}/icons/hicolor/${s}x${s}/apps/dapper-hardened-browser.png
 done
-
-# Install hight contrast icon
-%{__mkdir_p} $RPM_BUILD_ROOT%{_datadir}/icons/hicolor/symbolic/apps
-%{__cp} -p %{SOURCE25} \
-           $RPM_BUILD_ROOT%{_datadir}/icons/hicolor/symbolic/apps
 
 # Register as an application to be visible in the software center
 #
@@ -697,8 +692,13 @@ rm -f ${RPM_BUILD_ROOT}%{mozappdirdev}/sdk/lib/libxul.so
 %{__mkdir_p} $RPM_BUILD_ROOT%{mozappdir}/defaults/profile
 %{__cp} %{SOURCE26} $RPM_BUILD_ROOT%{mozappdir}/defaults/pref/
 %{__cp} %{SOURCE27} $RPM_BUILD_ROOT%{mozappdir}
-%{__mv} $RPM_BUILD_DIR/distribution $RPM_BUILD_ROOT%{mozappdir}
+install -d -m 755 $RPM_BUILD_DIR/%{name}-%{version}/distribution $RPM_BUILD_ROOT%{mozappdir}
 %{__cp} %{SOURCE29} $RPM_BUILD_ROOT%{mozappdir}/defaults/profile/
+%{__mv} $RPM_BUILD_ROOT%{mozappdir}/firefox $RPM_BUILD_ROOT%{mozappdir}/%{name}
+%{__mv} $RPM_BUILD_ROOT%{mozappdir}/firefox-bin $RPM_BUILD_ROOT%{mozappdir}/%{name}-bin
+
+# Remove Firefox directory
+rm -rf ${RPM_BUILD_ROOT}/usr/lib64/firefox
 
 #---------------------------------------------------------------------
 
@@ -748,8 +748,8 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 %files -f %{name}.lang
 %defattr(-,root,root,-)
 %{_bindir}/%{name}
-%{mozappdir}/firefox
-%{mozappdir}/firefox-bin
+%{mozappdir}/%{name}
+%{mozappdir}/%{name}-bin
 %doc %{_mandir}/man1/*
 %dir %{_sysconfdir}/%{name}/*
 %dir %{_datadir}/mozilla/extensions/*
@@ -763,7 +763,7 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 %dir %{mozappdir}/browser/components
 %{mozappdir}/browser/components/*.so
 %{mozappdir}/browser/components/components.manifest
-%{mozappdir}/browser/defaults/preferences/firefox-redhat-default-prefs.js
+%{mozappdir}/browser/defaults/preferences/browser-redhat-default-prefs.js
 %{mozappdir}/browser/features/e10srollout@mozilla.org.xpi
 %{mozappdir}/browser/features/firefox@getpocket.com.xpi
 %{mozappdir}/browser/features/webcompat@mozilla.org.xpi
@@ -780,13 +780,12 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 %{mozappdir}/run-mozilla.sh
 %{mozappdir}/application.ini
 %exclude %{mozappdir}/removed-files
-%{_datadir}/icons/hicolor/16x16/apps/firefox.png
-%{_datadir}/icons/hicolor/22x22/apps/firefox.png
-%{_datadir}/icons/hicolor/24x24/apps/firefox.png
-%{_datadir}/icons/hicolor/256x256/apps/firefox.png
-%{_datadir}/icons/hicolor/32x32/apps/firefox.png
-%{_datadir}/icons/hicolor/48x48/apps/firefox.png
-%{_datadir}/icons/hicolor/symbolic/apps/firefox-symbolic.svg
+%{_datadir}/icons/hicolor/16x16/apps/dapper-hardened-browser.png
+%{_datadir}/icons/hicolor/22x22/apps/dapper-hardened-browser.png
+%{_datadir}/icons/hicolor/24x24/apps/dapper-hardened-browser.png
+%{_datadir}/icons/hicolor/256x256/apps/dapper-hardened-browser.png
+%{_datadir}/icons/hicolor/32x32/apps/dapper-hardened-browser.png
+%{_datadir}/icons/hicolor/48x48/apps/dapper-hardened-browser.png
 %if %{enable_mozilla_crashreporter}
 %{mozappdir}/crashreporter
 %{mozappdir}/crashreporter.ini
@@ -822,6 +821,9 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 #---------------------------------------------------------------------
 
 %changelog
+* Sun Mar  5 2017 Matthew Ruffell <msr50@uclive.ac.nz> - 51.0.1-10
+- Dapper Hardened Browser Rebranded and Built
+
 * Mon Feb 27 2017 Martin Stransky <stransky@redhat.com> - 51.0.1-9
 - Disabled ARMv7 due to build failures (rhbz#1426850)
 
@@ -860,239 +862,4 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 
 * Mon Jan 16 2017 Martin Stransky <stransky@redhat.com> - 50.1.0-3
 - Added patch for nss 3.28.1 (mozbz#1290037)
-
-* Wed Dec 21 2016 Martin Stransky <stransky@redhat.com> - 50.1.0-2
-- Enabled Mozilla crash reporter
-
-* Tue Dec 13 2016 Martin Stransky <stransky@redhat.com> - 50.1.0-1
-- Updated to 50.1.0
-
-* Wed Nov 30 2016 Martin Stransky <stransky@redhat.com> - 50.0.2-2
-- Added fix for "ABORT: X_ShmAttach: BadAccess" crashes
-  (mozbz#1271100)
-
-* Wed Nov 30 2016 Martin Stransky <stransky@redhat.com> - 50.0.2-1
-- Update to latest upstream (50.0.2)
-
-* Mon Nov 28 2016 Martin Stransky <stransky@redhat.com> - 50.0.1-1
-- Update to latest upstream (50.0.1)
-
-* Thu Nov 24 2016 Martin Stransky <stransky@redhat.com> - 50.0-2
-- Rebase Gtk3 widget code to latest trunk to fix
-  various rendering problems (rhbz#1397290)
-
-* Thu Nov 10 2016 Martin Stransky <stransky@redhat.com> - 50.0-1
-- Update to 50.0
-
-* Mon Oct 31 2016 Jan Horak <jhorak@redhat.com> - 49.0.2-1
-- Update to 49.0.2
-
-* Mon Sep 26 2016 Jan Horak <jhorak@redhat.com> - 49.0-3
-- Build with rust where possible
-- Added fix for wrong accept-language headers when running with non-english locales
-
-* Mon Sep 19 2016 Martin Stransky <stransky@redhat.com> - 49.0-2
-- Update to Firefox 49 (B4)
-
-* Tue Sep 6 2016 Martin Stransky <stransky@redhat.com> - 49.0-1
-- Update to Firefox 49
-
-* Mon Aug 22 2016 Jan Horak <jhorak@redhat.com> - 48.0.1-2
-- Added translations for .desktop file actions
-
-* Fri Aug 19 2016 Martin Stransky <stransky@redhat.com> - 48.0.1-1
-- Update to 48.0.1
-- Added fix for mozbz#1291700 - Since latest release NTLM/SPNEGO
-  no longer works
-
-* Wed Aug 17 2016 Martin Stransky <stransky@redhat.com> - 48.0-6
-- Added patch for mozbz#1225044 - gtk3 rendering glitches
-
-* Fri Jul 29 2016 Martin Stransky <stransky@redhat.com> - 48.0-5
-- Added fix for mozbz#1250704 - tooltips text color
-- Disable system sqlite on F23
-- Package in-tree icu file
-
-* Thu Jul 28 2016 Martin Stransky <stransky@redhat.com> - 48.0-4
-- Enable dark themes by pref in about:config (Bug 1272332)
-- Backported gtk3.20 upstream fixes
-
-* Wed Jul 27 2016 Martin Stransky <stransky@redhat.com> - 48.0-3
-- Updated to 48.0 (B2)
-
-* Wed Jul 27 2016 Jan Horak <jhorak@redhat.com> - 48.0-2
-- Negotiate authentication is made off the main thread again (mozbz#890908)
-- Fixed default prerefences (rhbz#1349489)
-
-* Tue Jul 26 2016 Martin Stransky <stransky@redhat.com> - 48.0-1
-- Updated to 48.0
-
-* Fri Jul 22 2016 Tom Callaway <spot@fedoraproject.org> - 47.0.1-3
-- rebuild for libvpx 1.6.0
-
-* Mon Jul 11 2016 Martin Stransky <stransky@redhat.com> - 47.0.1-2
-- Added fix for mozbz#256180 - gmail paste issues
-
-* Mon Jul 11 2016 Martin Stransky <stransky@redhat.com> - 47.0.1-1
-- Updated to 47.0.1
-
-* Wed Jun 22 2016 Martin Stransky <stransky@redhat.com> - 47.0-6
-- Updated tooltip patch for 3.20
-
-* Mon Jun  6 2016 Martin Stransky <stransky@redhat.com> - 47.0-4
-- Updated to 47.0 (B3)
-- Should fix rhbz#1338010 (rebuilt against new astronomy-bookmarks)
-
-* Fri Jun  3 2016 Martin Stransky <stransky@redhat.com> - 47.0-3
-- Updated to 47.0 (B2)
-
-* Thu Jun  2 2016 Martin Stransky <stransky@redhat.com> - 47.0-2
-- Updated to 47.0
-- Backout of negotiate authentication patch
-
-* Thu May 26 2016 Jan Horak <jhorak@redhat.com> - 46.0.1-9
-- Negotiate authentication is made off the main thread (mozbz#890908)
-
-* Mon May 23 2016 Martin Stransky <stransky@redhat.com> - 46.0.1-8
-- Rebuilt for new bookmarks (rhbz#1338010)
-- Fixed build issue in Gtk3.20 patch
-
-* Fri May 20 2016 Martin Stransky <stransky@redhat.com> - 46.0.1-6
-- Updated Gtk3.20 patch - fixed tooltips
-
-* Thu May 19 2016 Martin Stransky <stransky@redhat.com> - 46.0.1-5
-- Added a fix for mozbz#1245783 - gcc6.1 crashes in JIT
-
-* Thu May 12 2016 Martin Stransky <stransky@redhat.com> - 46.0.1-4
-- Added fix for rhbz#1332821 - Crash on "Select" in "Open with" dialog
-
-* Tue May 10 2016 Martin Stransky <stransky@redhat.com> - 46.0.1-3
-- Added patch for rhbz#1332875 - new Samba auth reponse
-
-* Thu May 5 2016 Martin Stransky <stransky@redhat.com> - 46.0.1-2
-- Disable dark theme until we support it correctly (mozbz#1216658)
-
-* Tue May 3 2016 Martin Stransky <stransky@redhat.com> - 46.0.1-1
-- Updated to 46.0.1
-
-* Mon May 2 2016 Martin Stransky <stransky@redhat.com> - 46.0-6
-- Removed gstreamer config as it's no longer used.
-  See rhbz#1331496 for details.
-- Updated Firefox project URL (rhbz#1329014)
-
-* Thu Apr 28 2016 Martin Stransky <stransky@redhat.com> - 46.0-5
-- Added fix for rhbz#1322626 - wrong focused window
-
-* Wed Apr 27 2016 Martin Stransky <stransky@redhat.com> - 46.0-4
-- Added fix for rhbz#1315225 - ppc64le/aarch64 build fixes
-
-* Wed Apr 27 2016 Martin Stransky <stransky@redhat.com> - 46.0-3
-- Fixed missing langpacks
-
-* Tue Apr 26 2016 Martin Stransky <stransky@redhat.com> - 46.0-2
-- Disabled system libicu on Fedora 22/23
-
-* Mon Apr 25 2016 Martin Stransky <stransky@redhat.com> - 46.0-1
-- Updated to 46.0 (B5)
-
-* Thu Apr 21 2016 Martin Stransky <stransky@redhat.com> - 45.0.2-5
-- Added patch for mozbz#1263145
-
-* Wed Apr 20 2016 Martin Stransky <stransky@redhat.com> - 45.0.2-4
-- Updated scrollbar code for Gtk 3.20
-
-* Mon Apr 18 2016 Martin Stransky <stransky@redhat.com> - 45.0.2-2
-- Disabled gcc6 null this optimization (rhbz#1328045)
-
-* Mon Apr 11 2016 Martin Stransky <stransky@redhat.com> - 45.0.2-1
-- New upstream (45.0.2)
-
-* Tue Apr 5 2016 Martin Stransky <stransky@redhat.com> - 45.0.1-6
-- Fixed rhbz#1322669 - Flash widgets are not displayed
-
-* Tue Apr 5 2016 Martin Stransky <stransky@redhat.com> - 45.0.1-5
-- Polished gcc6 patches
-
-* Tue Mar 22 2016 Martin Stransky <stransky@redhat.com> - 45.0.1-4
-- Fixed rhbz#1321355 - broken flash plugin
-- Added /etc/firefox/pref dir for easy configuration
-
-* Mon Mar 21 2016 Martin Stransky <stransky@redhat.com> - 45.0.1-3
-- Provide system wide config dir (mozbz#1170092)
-- Allow lock preferences from .js files (mozbz#440908)
-
-* Mon Mar 21 2016 Martin Stransky <stransky@redhat.com> - 45.0.1-2
-- Fixed rhbz#1293874 - use a Debian patch for disabled extension
-  signing
-
-* Wed Mar 16 2016 Martin Stransky <stransky@redhat.com> - 45.0.1-1
-- Update to 45.0.1
-
-* Tue Mar 15 2016 Martin Stransky <stransky@redhat.com> - 45.0-5
-- Updated gtk3.20 patch
-
-* Fri Mar 4 2016 Martin Stransky <stransky@redhat.com> - 45.0-4
-- Update to 45.0 (B2)
-
-* Thu Mar 3 2016 Martin Stransky <stransky@redhat.com> - 45.0-3
-- Added run-time fix for JIT (mozbz#1253216)
-
-* Wed Mar 2 2016 Martin Stransky <stransky@redhat.com> - 45.0-2
-- Disabled system libvpx on Fedora 22 where is 1.3.0
-
-* Wed Mar 2 2016 Martin Stransky <stransky@redhat.com> - 45.0-1
-- Update to 45.0
-
-* Thu Feb 11 2016 Martin Stransky <stransky@redhat.com> - 44.0.2-3
-- Added patch for mozbz#1205199
-
-* Thu Feb 11 2016 Martin Stransky <stransky@redhat.com> - 44.0.2-2
-- Update to 44.0.2 (B3)
-
-* Wed Feb 10 2016 Martin Stransky <stransky@redhat.com> - 44.0.2-1
-- Update to 44.0.2 (B2)
-
-* Mon Feb 8 2016 Martin Stransky <stransky@redhat.com> - 44.0.1-2
-- Update to 44.0.1 (B2)
-
-* Fri Feb 5 2016 Martin Stransky <stransky@redhat.com> - 44.0.1-1
-- Update to 44.0.1
-
-* Thu Feb  4 2016 Jan Horak <jhorak@redhat.com> - 44.0-6
-- Workaround for crash when closing application chooser and Fedora 23
-  (rhbz#1291190)
-
-* Tue Feb 2 2016 Martin Stransky <stransky@redhat.com> - 44.0-5
-- GCC 6.0 build patch
-- Disabled mozilla crashreporter to catch Gtk3 crashes
-
-* Mon Feb 1 2016 Martin Stransky <stransky@redhat.com> - 44.0-4
-- Removed pulseaudio hard dependency (rhbz#1303620)
-
-* Tue Jan 26 2016 Ralph Giles <giles@mozilla.com> - 44.0-3
-- Medadata update, require pulseaudio
-
-* Mon Jan 25 2016 Martin Stransky <stransky@redhat.com> - 44.0-2
-- Update to 44.0 B3
-
-* Thu Jan 21 2016 Jan Horak <jhorak@redhat.com> - 44.0-1
-- Update to 44.0
-
-* Thu Jan 14 2016 Martin Stransky <stransky@redhat.com> - 43.0.4-2
-- Fixed the progress bar rendering
-
-* Thu Jan 14 2016 Martin Stransky <stransky@redhat.com> - 43.0.4-1
-- Update to 43.0.4
-
-* Wed Jan 13 2016 Martin Stransky <stransky@redhat.com> - 43.0.3-5
-- Updated progress bars rendering for Gtk 3.20
-
-* Thu Jan 7 2016 Martin Stransky <stransky@redhat.com> - 43.0.3-4
-- Added fix for mozbz#1234026 - crashes on XWayland
-
-* Tue Jan 05 2016 Marcin Juszkiewicz <mjuszkiewicz@redhat.com> - 43.0.3-3
-- Fix build on AArch64.
-
-* Mon Jan 4 2016 Martin Stransky <stransky@redhat.com> - 43.0.3-2
-- Enabled Skia (rhbz#1282134)
 
