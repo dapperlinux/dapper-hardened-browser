@@ -692,7 +692,8 @@ rm -f ${RPM_BUILD_ROOT}%{mozappdirdev}/sdk/lib/libxul.so
 %{__mkdir_p} $RPM_BUILD_ROOT%{mozappdir}/defaults/profile
 %{__cp} %{SOURCE26} $RPM_BUILD_ROOT%{mozappdir}/defaults/pref/
 %{__cp} %{SOURCE27} $RPM_BUILD_ROOT%{mozappdir}
-install -d -m 755 $RPM_BUILD_DIR/%{name}-%{version}/distribution $RPM_BUILD_ROOT%{mozappdir}
+cp -r $RPM_BUILD_DIR/%{name}-%{version}/distribution $RPM_BUILD_ROOT%{mozappdir}
+chmod -R +755 $RPM_BUILD_ROOT%{mozappdir}/distribution
 %{__cp} %{SOURCE29} $RPM_BUILD_ROOT%{mozappdir}/defaults/profile/
 %{__mv} $RPM_BUILD_ROOT%{mozappdir}/firefox $RPM_BUILD_ROOT%{mozappdir}/%{name}
 %{__mv} $RPM_BUILD_ROOT%{mozappdir}/firefox-bin $RPM_BUILD_ROOT%{mozappdir}/%{name}-bin

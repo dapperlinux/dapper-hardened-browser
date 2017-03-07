@@ -17,11 +17,4 @@ Name[en_NZ]=dapper-hardened-browser
 
 [Desktop Action new-window]
 Name=Open a New Window
-
-
 Exec=dapper-hardened-browser %u
-
-[Desktop Action new-private-window]
-Name=Open a New Private Window
-Exec=dapper-hardened-browser --private-window %u
-
