@@ -1,11 +1,8 @@
-# Temporary disabled due to js crash
-ExcludeArch: armv7hl
-
 # Use system nspr/nss?
 %define system_nss        1
 
 # Use system sqlite?
-%if 0%{?fedora} > 24
+%if 0%{?fedora} > 25
 %define system_sqlite     1
 %else
 %define system_sqlite     0
@@ -23,10 +20,17 @@ ExcludeArch: armv7hl
 %endif
 
 # Use system libicu?
-%if 0%{?fedora} > 23
+%if 0%{?fedora} > 27
 %define system_libicu      1
 %else
 %define system_libicu      0
+%endif
+
+# Big endian platforms
+%ifarch ppc64 s390x
+# Javascript Intl API is not supported on big endian platforms right now:
+# https://bugzilla.mozilla.org/show_bug.cgi?id=1322212
+%define big_endian              1
 %endif
 
 # Hardened build?
@@ -68,7 +72,7 @@ ExcludeArch: armv7hl
 %if %{?system_nss}
 %global nspr_version 4.10.10
 %global nspr_build_version %(pkg-config --silence-errors --modversion nspr 2>/dev/null || echo 65536)
-%global nss_version 3.27
+%global nss_version 3.28.3
 %global nss_build_version %(pkg-config --silence-errors --modversion nss 2>/dev/null || echo 65536)
 %endif
 
@@ -96,14 +100,14 @@ ExcludeArch: armv7hl
 
 Summary:        Dapper Linux Hardened Browser
 Name:           dapper-hardened-browser
-Version:        51.0.1
-Release:        9%{?pre_tag}%{?dist}
+Version:        52.0
+Release:        1%{?pre_tag}%{?dist}
 URL:            https://github.com/dapperlinux/dapper-hardened/browser
 License:        MPLv1.1 or GPLv2+ or LGPLv2+
 Group:          Applications/Internet
 Source0:        https://archive.mozilla.org/pub/firefox/releases/%{version}%{?pre_version}/source/firefox-%{version}%{?pre_version}.source.tar.xz
 %if %{build_langpacks}
-#Source1:        firefox-langpacks-%{version}%{?pre_version}-20170126.tar.xz
+#Source1:        firefox-langpacks-%{version}%{?pre_version}-20170303.tar.xz
 %endif
 Source10:       firefox-mozconfig
 Source12:       browser-redhat-default-prefs.js
@@ -128,9 +132,9 @@ Patch18:        xulrunner-24.0-jemalloc-ppc.patch
 # workaround linking issue on s390 (JSContext::updateMallocCounter(size_t) not found)
 Patch19:        xulrunner-24.0-s390-inlines.patch
 Patch20:        firefox-build-prbool.patch
-Patch21:        firefox-ppc64le.patch
 Patch24:        firefox-debug.patch
 Patch25:        rhbz-1219542-s390-build.patch
+Patch26:        build-icu-big-endian.patch
 
 # Fedora specific patches
 # Unable to install addons from https pages
@@ -142,7 +146,13 @@ Patch224:        mozilla-1170092.patch
 Patch225:        mozilla-1005640-accept-lang.patch
 #ARM run-time patch
 Patch226:        rhbz-1354671.patch
-Patch227:        rhbz-1414535.patch
+
+%if 0%{?fedora} > 25
+# Fix depends on p11-kit-trust 0.23.4 and enhanced ca-certificates.rpm
+Patch227:        rhbz-1400293-fix-mozilla-1324096.patch
+%else
+Patch227:        rhbz-1400293-workaround.patch
+%endif
 
 # Upstream patches
 Patch304:        mozilla-1253216.patch
@@ -151,8 +161,6 @@ Patch406:        mozilla-256180.patch
 # Rebase Gtk3 widget code to latest trunk to
 # fix various rendering problems
 Patch407:        widget-rebase.patch
-Patch408:        mozilla-1319374.patch
-Patch409:        mozilla-1321579.patch
 
 # Debian patches
 Patch500:        mozilla-440908.patch
@@ -200,6 +208,14 @@ Requires:       mozilla-filesystem
 %if %{?system_nss}
 Requires:       nspr >= %{nspr_build_version}
 Requires:       nss >= %{nss_build_version}
+%endif
+
+%if 0%{?fedora} > 25
+# For early testing of rhbz#1400293 mozbz#1324096 on F26 and Rawhide,
+# temporarily require the specific NSS build with the backports.
+# Can be removed after firefox is changed to require NSS 3.30.
+BuildRequires:  nss-devel >= 3.29.1-2.1
+Requires:       nss >= 3.29.1-2.1
 %endif
 
 BuildRequires:  desktop-file-utils
@@ -277,7 +293,6 @@ cd %{tarballdir}
 %patch18 -p1 -b .jemalloc-ppc
 %patch19 -p2 -b .s390-inlines
 %patch20 -p1 -b .prbool
-%patch21 -p2 -b .ppc64le
 %patch24 -p1 -b .debug
 %ifarch s390
 %patch25 -p1 -b .rhbz-1219542-s390
@@ -298,7 +313,7 @@ cd %{tarballdir}
 %ifarch aarch64
 %patch226 -p1 -b .1354671
 %endif
-%patch227 -p1 -b .rh1414535
+%patch227 -p1 -b .rh1400293
 
 %patch304 -p1 -b .1253216
 %patch402 -p1 -b .1196777
@@ -306,12 +321,15 @@ cd %{tarballdir}
 # Rebase Gtk3 widget code to latest trunk to
 # fix various rendering problems
 %patch407 -p1 -b .widget-rebase
-# ppc64 build fix
-%patch408 -p1 -b .1319374
-%patch409 -p1 -b .1321579
 
 # Debian extension patch
 %patch500 -p1 -b .440908
+
+# Patch for big endian platforms only
+%if 0%{?big_endian}
+%patch26 -p1 -b .icu
+%endif
+
 
 %{__rm} -f .mozconfig
 %{__cp} %{SOURCE10} .mozconfig
@@ -353,21 +371,26 @@ echo "ac_add_options --enable-debug" >> .mozconfig
 echo "ac_add_options --disable-optimize" >> .mozconfig
 echo "ac_add_options --enable-dtrace" >> .mozconfig
 %else
-echo "ac_add_options --disable-debug" >> .mozconfig
-%ifarch ppc64le aarch64
-echo 'ac_add_options --enable-optimize="-g -O2"' >> .mozconfig
-%else
+%define optimize_flags "none"
+# Fedora 26 (gcc7) needs to disable default build flags (mozbz#1342344)
 %if 0%{?fedora} > 25
-%ifarch s390 s390x
-# crashes in xpcshell with "-g -O2", potential gcc issue
-echo "ac_add_options --enable-optimize" >> .mozconfig
+%ifnarch s390 s390x
+%define optimize_flags "-g -O2"
+%endif
+%endif
+%ifarch armv7hl
+# ARMv7 need that (rhbz#1426850)
+%define optimize_flags "-g -O2 -fno-schedule-insns"
+%endif
+%ifarch ppc64le aarch64
+%define optimize_flags "-g -O2"
+%endif
+%if %{?optimize_flags} != "none"
+echo 'ac_add_options --enable-optimize=%{?optimize_flags}' >> .mozconfig
 %else
-echo 'ac_add_options --enable-optimize="-g -O2"' >> .mozconfig
+echo 'ac_add_options --enable-optimize' >> .mozconfig
 %endif
-%else
-echo "ac_add_options --enable-optimize" >> .mozconfig
-%endif
-%endif
+echo "ac_add_options --disable-debug" >> .mozconfig
 %endif
 
 # s390(x) fails to start with jemalloc enabled
@@ -427,6 +450,13 @@ esac
 %endif
 
 cd %{tarballdir}
+
+echo "Generate big endian version of config/external/icu/data/icud58l.dat"
+%if 0%{?big_endian}
+  ./mach python intl/icu_sources_data.py .
+  ls -l config/external/icu/data
+  rm -f config/external/icu/data/icudt*l.dat
+%endif
 
 # Update the various config.guess to upstream release for aarch64 support
 find ./ -name config.guess -exec cp /usr/lib/rpm/config.guess {} ';'
@@ -761,9 +791,6 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 %doc %{mozappdir}/LICENSE
 %{mozappdir}/browser/chrome
 %{mozappdir}/browser/chrome.manifest
-%dir %{mozappdir}/browser/components
-%{mozappdir}/browser/components/*.so
-%{mozappdir}/browser/components/components.manifest
 %{mozappdir}/browser/defaults/preferences/browser-redhat-default-prefs.js
 %{mozappdir}/browser/features/e10srollout@mozilla.org.xpi
 %{mozappdir}/browser/features/firefox@getpocket.com.xpi
@@ -778,6 +805,7 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 %endif
 %{mozappdir}/browser/omni.ja
 %{mozappdir}/browser/icons
+%{mozappdir}/chrome.manifest
 %{mozappdir}/run-mozilla.sh
 %{mozappdir}/application.ini
 %exclude %{mozappdir}/removed-files
@@ -790,6 +818,7 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 %if %{enable_mozilla_crashreporter}
 %{mozappdir}/crashreporter
 %{mozappdir}/crashreporter.ini
+%{mozappdir}/minidump-analyzer
 %{mozappdir}/Throbber-small.gif
 %{mozappdir}/browser/crashreporter-override.ini
 %endif
@@ -808,7 +837,7 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 %{mozappdir}/gmp-clearkey
 %{mozappdir}/fonts/EmojiOneMozilla.ttf
 %if !%{?system_libicu}
-%{mozappdir}/icudt56l.dat
+%{mozappdir}/icudt*.dat
 %endif
 %exclude %{_includedir}
 %exclude %{_libdir}/firefox-devel-%{version}
@@ -822,8 +851,25 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 #---------------------------------------------------------------------
 
 %changelog
-* Sun Mar  5 2017 Matthew Ruffell <msr50@uclive.ac.nz> - 51.0.1-10
+* Thu Mar  9 2017 Matthew Ruffell <msr50@uclive.ac.nz> - 52.0-3
 - Dapper Hardened Browser Rebranded and Built
+
+* Tue Mar  7 2017 Jan Horak <jhorak@redhat.com> - 52.0-3
+- Added s390x to big endian platforms
+
+* Tue Mar  7 2017 Jan Horak <jhorak@redhat.com> - 52.0-2
+- Added fix for libicu on big endian platforms
+
+* Fri Mar 3 2017 Martin Stransky <stransky@redhat.com> - 52.0-1
+- Update to 52.0 (B2)
+
+* Thu Mar 02 2017 Kai Engert <kaie@redhat.com> - 51.0.1-11
+- Enable upstream fix for rhbz#1400293 mozbz#1324096 on F26 and Rawhide.
+  Keep the old workaround on F24/F25, required base packages aren't
+  available yet.
+
+* Thu Mar 2 2017 Martin Stransky <stransky@redhat.com> - 51.0.1-10
+- Test another ARMv7 build setup (rhbz#1426850)
 
 * Mon Feb 27 2017 Martin Stransky <stransky@redhat.com> - 51.0.1-9
 - Disabled ARMv7 due to build failures (rhbz#1426850)

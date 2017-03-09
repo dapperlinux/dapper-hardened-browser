@@ -1,6 +1,20 @@
-diff -up firefox-46.0/media/webrtc/trunk/webrtc/build/common.gypi.arm firefox-46.0/media/webrtc/trunk/webrtc/build/common.gypi
---- firefox-46.0/media/webrtc/trunk/webrtc/build/common.gypi.arm	2016-04-25 12:03:12.486027089 +0200
-+++ firefox-46.0/media/webrtc/trunk/webrtc/build/common.gypi	2016-04-25 12:05:55.714644873 +0200
+diff -up firefox-52.0/gfx/skia/skia/include/core/SkPreConfig.h.arm firefox-52.0/gfx/skia/skia/include/core/SkPreConfig.h
+--- firefox-52.0/gfx/skia/skia/include/core/SkPreConfig.h.arm	2017-03-03 13:53:52.480754536 +0100
++++ firefox-52.0/gfx/skia/skia/include/core/SkPreConfig.h	2017-03-03 13:56:01.476018102 +0100
+@@ -203,6 +203,10 @@
+     #define SK_ARM_HAS_CRC32
+ #endif
+ 
++#if defined(__aarch64__)
++    #undef SK_ARM_HAS_NEON
++#endif
++
+ //////////////////////////////////////////////////////////////////////
+ 
+ #if !defined(SKIA_IMPLEMENTATION)
+diff -up firefox-52.0/media/webrtc/trunk/webrtc/build/common.gypi.arm firefox-52.0/media/webrtc/trunk/webrtc/build/common.gypi
+--- firefox-52.0/media/webrtc/trunk/webrtc/build/common.gypi.arm	2016-09-05 22:12:57.000000000 +0200
++++ firefox-52.0/media/webrtc/trunk/webrtc/build/common.gypi	2017-03-03 13:53:52.480754536 +0100
 @@ -312,20 +312,6 @@
          'defines': [
            'WEBRTC_ARCH_ARM',
@@ -22,18 +36,3 @@ diff -up firefox-46.0/media/webrtc/trunk/webrtc/build/common.gypi.arm firefox-46
        }],
        ['os_bsd==1', {
          'defines': [
-diff -up firefox-51.0/gfx/skia/skia/include/core/SkPreConfig.h.old firefox-51.0/gfx/skia/skia/include/core/SkPreConfig.h
---- firefox-51.0/gfx/skia/skia/include/core/SkPreConfig.h.old	2017-01-20 10:22:48.921666380 +0100
-+++ firefox-51.0/gfx/skia/skia/include/core/SkPreConfig.h	2017-01-20 10:23:23.600486691 +0100
-@@ -208,6 +208,10 @@
-     #define SK_ARM_HAS_NEON
- #endif
- 
-+#if defined(__aarch64__)
-+    #undef SK_ARM_HAS_NEON
-+#endif
-+
- //////////////////////////////////////////////////////////////////////
- 
- #if !defined(SKIA_IMPLEMENTATION)
-diff -up firefox-51.0/media/webrtc/trunk/Makefile.old firefox-51.0/media/webrtc/trunk/Makefile
