@@ -1,3 +1,6 @@
+# Use ALSA backend?
+%define alsa_backend      0
+
 # Use system nspr/nss?
 %define system_nss        1
 
@@ -90,10 +93,9 @@
 %define official_branding       0
 %define build_langpacks         0
 
+%define enable_mozilla_crashreporter       0
 %if !%{debug_build}
 %ifarch %{ix86} x86_64
-%define enable_mozilla_crashreporter       0
-%else
 %define enable_mozilla_crashreporter       0
 %endif
 %endif
@@ -101,7 +103,7 @@
 Summary:        Dapper Linux Hardened Browser
 Name:           dapper-hardened-browser
 Version:        52.0
-Release:        1%{?pre_tag}%{?dist}
+Release:        6%{?pre_tag}%{?dist}
 URL:            https://github.com/dapperlinux/dapper-hardened/browser
 License:        MPLv1.1 or GPLv2+ or LGPLv2+
 Group:          Applications/Internet
@@ -147,12 +149,10 @@ Patch225:        mozilla-1005640-accept-lang.patch
 #ARM run-time patch
 Patch226:        rhbz-1354671.patch
 
-%if 0%{?fedora} > 25
 # Fix depends on p11-kit-trust 0.23.4 and enhanced ca-certificates.rpm
 Patch227:        rhbz-1400293-fix-mozilla-1324096.patch
-%else
-Patch227:        rhbz-1400293-workaround.patch
-%endif
+Patch228:        rhbz-1400293-workaround.patch
+
 
 # Upstream patches
 Patch304:        mozilla-1253216.patch
@@ -190,7 +190,9 @@ BuildRequires:  pkgconfig(xt)
 BuildRequires:  pkgconfig(xrender)
 BuildRequires:  pkgconfig(hunspell)
 BuildRequires:  pkgconfig(libstartup-notification-1.0)
+%if %{?alsa_backend}
 BuildRequires:  pkgconfig(alsa)
+%endif
 BuildRequires:  pkgconfig(libnotify) >= %{libnotify_version}
 BuildRequires:  pkgconfig(dri)
 BuildRequires:  pkgconfig(libcurl)
@@ -313,7 +315,13 @@ cd %{tarballdir}
 %ifarch aarch64
 %patch226 -p1 -b .1354671
 %endif
+
+%if 0%{?fedora} > 25
+# Fix depends on p11-kit-trust 0.23.4 and enhanced ca-certificates.rpm
 %patch227 -p1 -b .rh1400293
+%else
+%patch228 -p1 -b .rh1400293
+%endif
 
 %patch304 -p1 -b .1253216
 %patch402 -p1 -b .1196777
@@ -364,6 +372,10 @@ echo "ac_add_options --enable-system-ffi" >> .mozconfig
 
 %ifarch %{arm}
 echo "ac_add_options --disable-elf-hack" >> .mozconfig
+%endif
+
+%if %{?alsa_backend}
+echo "ac_add_options --enable-alsa" >> .mozconfig
 %endif
 
 %if %{?debug_build}
@@ -851,8 +863,14 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 #---------------------------------------------------------------------
 
 %changelog
-* Thu Mar  9 2017 Matthew Ruffell <msr50@uclive.ac.nz> - 52.0-3
+* Fri Mar 17 2017 Matthew Ruffell <msr50@uclive.ac.nz> - 52.0-6
 - Dapper Hardened Browser Rebranded and Built
+
+* Mon Mar 13 2017 Martin Stransky <stransky@redhat.com> - 52.0-5
+- Enable ALSA backend behind pref (rhbz#1431371)
+
+* Fri Mar 10 2017 Martin Stransky <stransky@redhat.com> - 52.0-2
+- Fixed e10s enablement (rhbz#1398717)
 
 * Tue Mar  7 2017 Jan Horak <jhorak@redhat.com> - 52.0-3
 - Added s390x to big endian platforms

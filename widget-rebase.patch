@@ -1,6 +1,6 @@
 diff -up firefox-52.0/widget/gtk/gtk3drawing.cpp.widget-rebase firefox-52.0/widget/gtk/gtk3drawing.cpp
 --- firefox-52.0/widget/gtk/gtk3drawing.cpp.widget-rebase	2017-02-27 17:11:05.000000000 +0100
-+++ firefox-52.0/widget/gtk/gtk3drawing.cpp	2017-03-03 14:28:39.000000000 +0100
++++ firefox-52.0/widget/gtk/gtk3drawing.cpp	2017-03-10 12:20:30.232205991 +0100
 @@ -36,6 +36,10 @@ static gboolean is_initialized;
  static gint
  moz_gtk_get_tab_thickness(GtkStyleContext *style);
@@ -528,7 +528,7 @@ diff -up firefox-52.0/widget/gtk/gtk3drawing.cpp.widget-rebase firefox-52.0/widg
          return moz_gtk_vpaned_paint(cr, rect, state);
 diff -up firefox-52.0/widget/gtk/gtkdrawing.h.widget-rebase firefox-52.0/widget/gtk/gtkdrawing.h
 --- firefox-52.0/widget/gtk/gtkdrawing.h.widget-rebase	2017-02-27 17:11:05.000000000 +0100
-+++ firefox-52.0/widget/gtk/gtkdrawing.h	2017-02-06 13:31:12.000000000 +0100
++++ firefox-52.0/widget/gtk/gtkdrawing.h	2017-03-10 12:20:30.233205986 +0100
 @@ -145,8 +145,11 @@ typedef enum {
    MOZ_GTK_ENTRY,
    /* Paints a GtkExpander. */
@@ -578,7 +578,7 @@ diff -up firefox-52.0/widget/gtk/gtkdrawing.h.widget-rebase firefox-52.0/widget/
    MOZ_GTK_SPLITTER_HORIZONTAL,
 diff -up firefox-52.0/widget/gtk/mozgtk/mozgtk.c.widget-rebase firefox-52.0/widget/gtk/mozgtk/mozgtk.c
 --- firefox-52.0/widget/gtk/mozgtk/mozgtk.c.widget-rebase	2017-02-27 17:11:05.000000000 +0100
-+++ firefox-52.0/widget/gtk/mozgtk/mozgtk.c	2017-03-03 14:27:02.817350951 +0100
++++ firefox-52.0/widget/gtk/mozgtk/mozgtk.c	2017-03-10 12:20:30.233205986 +0100
 @@ -245,7 +245,6 @@ STUB(gtk_icon_theme_get_icon_sizes)
  STUB(gtk_icon_theme_lookup_by_gicon)
  STUB(gtk_icon_theme_lookup_icon)
@@ -589,7 +589,7 @@ diff -up firefox-52.0/widget/gtk/mozgtk/mozgtk.c.widget-rebase firefox-52.0/widg
  STUB(gtk_image_set_from_pixbuf)
 diff -up firefox-52.0/widget/gtk/nsLookAndFeel.cpp.widget-rebase firefox-52.0/widget/gtk/nsLookAndFeel.cpp
 --- firefox-52.0/widget/gtk/nsLookAndFeel.cpp.widget-rebase	2017-02-27 17:11:05.000000000 +0100
-+++ firefox-52.0/widget/gtk/nsLookAndFeel.cpp	2017-02-28 14:17:22.000000000 +0100
++++ firefox-52.0/widget/gtk/nsLookAndFeel.cpp	2017-03-10 13:54:36.918205357 +0100
 @@ -24,6 +24,7 @@
  #include "nsStyleConsts.h"
  #include "gfxFontConstants.h"
@@ -733,7 +733,7 @@ diff -up firefox-52.0/widget/gtk/nsLookAndFeel.cpp.widget-rebase firefox-52.0/wi
  void
  nsLookAndFeel::Init()
  {
-@@ -1129,78 +1146,60 @@ nsLookAndFeel::Init()
+@@ -1129,78 +1146,54 @@ nsLookAndFeel::Init()
          g_object_set(settings, dark_setting, FALSE, nullptr);
      }
  
@@ -745,12 +745,7 @@ diff -up firefox-52.0/widget/gtk/nsLookAndFeel.cpp.widget-rebase firefox-52.0/wi
 -
 -    mButtonStyle = create_context(path);
 -    gtk_style_context_add_class(mButtonStyle, GTK_STYLE_CLASS_BUTTON); 
-+    if (!mozilla::BrowserTabsRemoteAutostart() || XRE_IsContentProcess()) {
-+        // disable dark in main when e10s is disabled
-+        // disable dark in web content
-+        fprintf(stderr, "************** Dark theme disabled **********\n");
-+    }
- 
+-
      // Scrollbar colors
 -    style = create_context(path);
 -    gtk_style_context_add_class(style, GTK_STYLE_CLASS_SCROLLBAR);
@@ -840,7 +835,7 @@ diff -up firefox-52.0/widget/gtk/nsLookAndFeel.cpp.widget-rebase firefox-52.0/wi
  #endif
  
      // button styles
-@@ -1211,9 +1210,6 @@ nsLookAndFeel::Init()
+@@ -1211,9 +1204,6 @@ nsLookAndFeel::Init()
      GtkWidget *combobox = gtk_combo_box_new();
      GtkWidget *comboboxLabel = gtk_label_new("M");
      gtk_container_add(GTK_CONTAINER(combobox), comboboxLabel);
@@ -850,7 +845,7 @@ diff -up firefox-52.0/widget/gtk/nsLookAndFeel.cpp.widget-rebase firefox-52.0/wi
  #endif
      GtkWidget *window = gtk_window_new(GTK_WINDOW_POPUP);
      GtkWidget *treeView = gtk_tree_view_new();
-@@ -1227,7 +1223,9 @@ nsLookAndFeel::Init()
+@@ -1227,7 +1217,9 @@ nsLookAndFeel::Init()
      gtk_container_add(GTK_CONTAINER(parent), button);
      gtk_container_add(GTK_CONTAINER(parent), treeView);
      gtk_container_add(GTK_CONTAINER(parent), linkButton);
@@ -860,7 +855,7 @@ diff -up firefox-52.0/widget/gtk/nsLookAndFeel.cpp.widget-rebase firefox-52.0/wi
      gtk_container_add(GTK_CONTAINER(parent), menuBar);
      gtk_menu_shell_append(GTK_MENU_SHELL(menuBar), menuBarItem);
      gtk_container_add(GTK_CONTAINER(window), parent);
-@@ -1310,11 +1308,19 @@ nsLookAndFeel::Init()
+@@ -1310,11 +1302,19 @@ nsLookAndFeel::Init()
      }
  #else
      // Text colors
@@ -885,7 +880,7 @@ diff -up firefox-52.0/widget/gtk/nsLookAndFeel.cpp.widget-rebase firefox-52.0/wi
      gtk_style_context_get_color(style, GTK_STATE_FLAG_NORMAL, &color);
      sMozFieldText = GDK_RGBA_TO_NS_RGBA(color);
  
-@@ -1327,26 +1333,34 @@ nsLookAndFeel::Init()
+@@ -1327,26 +1327,34 @@ nsLookAndFeel::Init()
          static_cast<GtkStateFlags>(GTK_STATE_FLAG_FOCUSED|GTK_STATE_FLAG_SELECTED),
          &color);
      sTextSelectedText = GDK_RGBA_TO_NS_RGBA(color);
@@ -929,7 +924,7 @@ diff -up firefox-52.0/widget/gtk/nsLookAndFeel.cpp.widget-rebase firefox-52.0/wi
  
      // GTK's guide to fancy odd row background colors:
      // 1) Check if a theme explicitly defines an odd row color
-@@ -1354,7 +1368,7 @@ nsLookAndFeel::Init()
+@@ -1354,7 +1362,7 @@ nsLookAndFeel::Init()
      //    slightly by a hardcoded value (gtkstyle.c)
      // 3) If neither are defined, take the base background color and
      //    darken that by a hardcoded value
@@ -938,7 +933,7 @@ diff -up firefox-52.0/widget/gtk/nsLookAndFeel.cpp.widget-rebase firefox-52.0/wi
  
      // Get odd row background color
      gtk_style_context_save(style);
-@@ -1362,8 +1376,7 @@ nsLookAndFeel::Init()
+@@ -1362,8 +1370,7 @@ nsLookAndFeel::Init()
      gtk_style_context_get_background_color(style, GTK_STATE_FLAG_NORMAL, &color);
      sOddCellBackground = GDK_RGBA_TO_NS_RGBA(color);
      gtk_style_context_restore(style);
@@ -948,7 +943,7 @@ diff -up firefox-52.0/widget/gtk/nsLookAndFeel.cpp.widget-rebase firefox-52.0/wi
  
      // GtkFrame has a "border" subnode on which Adwaita draws the border.
      // Some themes do not draw on this node but draw a border on the widget
-@@ -1448,12 +1461,6 @@ nsLookAndFeel::RefreshImpl()
+@@ -1448,12 +1455,6 @@ nsLookAndFeel::RefreshImpl()
  #if (MOZ_WIDGET_GTK == 2)
      g_object_unref(mStyle);
      mStyle = nullptr;
@@ -961,11 +956,9 @@ diff -up firefox-52.0/widget/gtk/nsLookAndFeel.cpp.widget-rebase firefox-52.0/wi
  #endif
  
      Init();
-diff -up firefox-52.0/widget/gtk/nsNativeThemeGTK.cpp.widget-rebase firefox-52.0/widget/gtk/nsNativeThemeGTK.cpp
-diff -up firefox-52.0/widget/gtk/nsNativeThemeGTK.h.widget-rebase firefox-52.0/widget/gtk/nsNativeThemeGTK.h
 diff -up firefox-52.0/widget/gtk/WidgetStyleCache.cpp.widget-rebase firefox-52.0/widget/gtk/WidgetStyleCache.cpp
 --- firefox-52.0/widget/gtk/WidgetStyleCache.cpp.widget-rebase	2017-02-27 17:11:05.000000000 +0100
-+++ firefox-52.0/widget/gtk/WidgetStyleCache.cpp	2017-02-06 13:31:12.000000000 +0100
++++ firefox-52.0/widget/gtk/WidgetStyleCache.cpp	2017-03-10 12:20:30.235205976 +0100
 @@ -434,15 +434,6 @@ CreateScrolledWindowWidget()
  }
  
@@ -1164,4 +1157,4 @@ diff -up firefox-52.0/widget/gtk/WidgetStyleCache.cpp.widget-rebase firefox-52.0
      case MOZ_GTK_FRAME_BORDER:
        return GetWidgetRootStyle(MOZ_GTK_FRAME);
      case MOZ_GTK_TREEVIEW_VIEW:
-diff -up firefox-52.0/widget/gtk/WidgetStyleCache.h.widget-rebase firefox-52.0/widget/gtk/WidgetStyleCache.h
+
