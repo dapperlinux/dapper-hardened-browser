@@ -103,7 +103,7 @@
 Summary:        Dapper Linux Hardened Browser
 Name:           dapper-hardened-browser
 Version:        52.0
-Release:        6%{?pre_tag}%{?dist}
+Release:        7%{?pre_tag}%{?dist}
 URL:            https://github.com/dapperlinux/dapper-hardened/browser
 License:        MPLv1.1 or GPLv2+ or LGPLv2+
 Group:          Applications/Internet
@@ -161,6 +161,8 @@ Patch406:        mozilla-256180.patch
 # Rebase Gtk3 widget code to latest trunk to
 # fix various rendering problems
 Patch407:        widget-rebase.patch
+Patch408:        mozilla-1348168.patch
+Patch409:        mozilla-1158076.patch
 
 # Debian patches
 Patch500:        mozilla-440908.patch
@@ -329,6 +331,8 @@ cd %{tarballdir}
 # Rebase Gtk3 widget code to latest trunk to
 # fix various rendering problems
 %patch407 -p1 -b .widget-rebase
+%patch408 -p1 -b .1348168
+%patch409 -p1 -b .1158076
 
 # Debian extension patch
 %patch500 -p1 -b .440908
@@ -863,8 +867,12 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 #---------------------------------------------------------------------
 
 %changelog
-* Fri Mar 17 2017 Matthew Ruffell <msr50@uclive.ac.nz> - 52.0-6
+* Thu Mar 23 2017 Matthew Ruffell <msr50@uclive.ac.nz> - 52.0-7
 - Dapper Hardened Browser Rebranded and Built
+
+* Wed Mar 22 2017 Martin Stransky <stransky@redhat.com> - 52.0-6
+- Added fix for CVE-2017-5428
+- Added fix for mozbz#1158076
 
 * Mon Mar 13 2017 Martin Stransky <stransky@redhat.com> - 52.0-5
 - Enable ALSA backend behind pref (rhbz#1431371)

@@ -1,0 +1,185 @@
+diff -up firefox-52.0/modules/libpref/init/all.js.1158076 firefox-52.0/modules/libpref/init/all.js
+--- firefox-52.0/modules/libpref/init/all.js.1158076	2017-03-22 10:05:22.318067553 +0100
++++ firefox-52.0/modules/libpref/init/all.js	2017-03-22 10:07:15.360555913 +0100
+@@ -4646,6 +4646,7 @@ pref("gfx.apitrace.enabled",false);
+ pref("gfx.content.use-native-pushlayer", true);
+ #ifdef MOZ_WIDGET_GTK
+ pref("gfx.xrender.enabled",false);
++pref("widget.allow-gtk-dark-theme", false);
+ #endif
+ #endif
+ 
+diff -up firefox-52.0/widget/gtk/mozgtk/mozgtk.c.1158076 firefox-52.0/widget/gtk/mozgtk/mozgtk.c
+--- firefox-52.0/widget/gtk/mozgtk/mozgtk.c.1158076	2017-03-22 10:05:22.313067576 +0100
++++ firefox-52.0/widget/gtk/mozgtk/mozgtk.c	2017-03-22 10:08:34.122199432 +0100
+@@ -522,6 +522,7 @@ STUB(gdk_x11_display_get_type)
+ STUB(gtk_box_new)
+ STUB(gtk_cairo_should_draw_window)
+ STUB(gtk_cairo_transform_to_window)
++STUB(gtk_css_provider_get_named)
+ STUB(gtk_combo_box_text_append)
+ STUB(gtk_drag_set_icon_surface)
+ STUB(gtk_get_major_version)
+@@ -548,6 +549,7 @@ STUB(gtk_scale_new)
+ STUB(gtk_scrollbar_new)
+ STUB(gtk_style_context_add_class)
+ STUB(gtk_style_context_add_region)
++STUB(gtk_style_context_add_provider_for_screen)
+ STUB(gtk_style_context_get)
+ STUB(gtk_style_context_get_background_color)
+ STUB(gtk_style_context_get_border)
+@@ -573,6 +575,7 @@ STUB(gtk_style_context_set_path)
+ STUB(gtk_style_context_set_parent)
+ STUB(gtk_style_context_set_state)
+ STUB(gtk_style_properties_lookup_property)
++STUB(gtk_style_provider_get_type)
+ STUB(gtk_tree_view_column_get_button)
+ STUB(gtk_widget_get_preferred_size)
+ STUB(gtk_widget_get_state_flags)
+diff -up firefox-52.0/widget/gtk/nsLookAndFeel.cpp.1158076 firefox-52.0/widget/gtk/nsLookAndFeel.cpp
+--- firefox-52.0/widget/gtk/nsLookAndFeel.cpp.1158076	2017-03-22 10:05:22.314067571 +0100
++++ firefox-52.0/widget/gtk/nsLookAndFeel.cpp	2017-03-22 10:07:56.914367838 +0100
+@@ -50,9 +50,9 @@ nsLookAndFeel::nsLookAndFeel()
+       mStyle(nullptr),
+ #endif
+       mDefaultFontCached(false), mButtonFontCached(false),
+-      mFieldFontCached(false), mMenuFontCached(false)
++      mFieldFontCached(false), mMenuFontCached(false),
++      mInitialized(false)
+ {
+-    Init();    
+ }
+ 
+ nsLookAndFeel::~nsLookAndFeel()
+@@ -224,6 +224,8 @@ GetBorderColors(GtkStyleContext* aContex
+ nsresult
+ nsLookAndFeel::NativeGetColor(ColorID aID, nscolor& aColor)
+ {
++    EnsureInit();
++
+ #if (MOZ_WIDGET_GTK == 3)
+     GdkRGBA gdk_color;
+ #endif
+@@ -675,6 +677,8 @@ nsLookAndFeel::GetIntImpl(IntID aID, int
+         return res;
+     res = NS_OK;
+ 
++    // We use delayed initialization by EnsureInit() here
++    // to ensure mozilla::Preferences is available (see Bug 1158076).
+     switch (aID) {
+     case eIntID_CaretBlinkTime:
+         {
+@@ -837,6 +841,7 @@ nsLookAndFeel::GetIntImpl(IntID aID, int
+         aResult = NS_STYLE_TEXT_DECORATION_STYLE_WAVY;
+         break;
+     case eIntID_MenuBarDrag:
++        EnsureInit();
+         aResult = sMenuSupportsDrag;
+         break;
+     case eIntID_ScrollbarButtonAutoRepeatBehavior:
+@@ -877,6 +882,7 @@ nsLookAndFeel::GetFloatImpl(FloatID aID,
+         aResult = 1.0f;
+         break;
+     case eFloatID_CaretAspectRatio:
++        EnsureInit();
+         aResult = sCaretRatio;
+         break;
+     default:
+@@ -1057,11 +1063,15 @@ nsLookAndFeel::GetFontImpl(FontID aID, n
+ }
+ 
+ void
+-nsLookAndFeel::Init()
++nsLookAndFeel::EnsureInit()
+ {
+     GdkColor colorValue;
+     GdkColor *colorValuePtr;
+ 
++    if (mInitialized)
++        return;
++    mInitialized = true;
++
+ #if (MOZ_WIDGET_GTK == 2)
+     NS_ASSERTION(!mStyle, "already initialized");
+     // GtkInvisibles come with a refcount that is not floating
+@@ -1133,17 +1143,40 @@ nsLookAndFeel::Init()
+     // ask Gtk to create it explicitly. Otherwise we may end up
+     // with wrong color theme, see Bug 972382
+     GtkSettings *settings = gtk_settings_get_for_screen(gdk_screen_get_default());
++    bool e10sActive = mozilla::BrowserTabsRemoteAutostart();
++
++    if (!e10sActive || XRE_IsContentProcess()) {
++        // Disable dark theme in processes with web content because it
++        // interacts poorly with widget styling (see bug 1216658).
++        // To avoid triggering reload of theme settings unnecessarily, only set the
++        // setting when necessary.
++        const gchar* dark_setting = "gtk-application-prefer-dark-theme";
++        gboolean dark;
++        g_object_get(settings, dark_setting, &dark, nullptr);
++
++        bool allowDarkEnv = PR_GetEnv("MOZ_ALLOW_GTK_DARK_THEME") != nullptr;
++        bool allowDarkPref =
++            mozilla::Preferences::GetBool("widget.allow-gtk-dark-theme", false);
+ 
+-    // Disable dark theme because it interacts poorly with widget styling in
+-    // web content (see bug 1216658).
+-    // To avoid triggering reload of theme settings unnecessarily, only set the
+-    // setting when necessary.
+-    const gchar* dark_setting = "gtk-application-prefer-dark-theme";
+-    gboolean dark;
+-    g_object_get(settings, dark_setting, &dark, nullptr);
++        if (dark && !allowDarkEnv && !allowDarkPref) {
++            g_object_set(settings, dark_setting, FALSE, nullptr);
++        }
+ 
+-    if (dark && !PR_GetEnv("MOZ_ALLOW_GTK_DARK_THEME")) {
+-        g_object_set(settings, dark_setting, FALSE, nullptr);
++        // Allow Gtk+ theme override for web content only.
++        if (e10sActive) {
++            auto contentThemeName =
++                mozilla::Preferences::GetCString("widget.content-gtk-theme");
++            if (!contentThemeName.IsEmpty()) {
++                // TODO: It should be enough to change theme by "gtk-theme-name"
++                // settings but that does not have any effect here. Maybe we
++                // call it too late?
++                GtkCssProvider *styleProvider =
++                    gtk_css_provider_get_named(contentThemeName, NULL);
++                gtk_style_context_add_provider_for_screen(gdk_screen_get_default(),
++                    GTK_STYLE_PROVIDER(styleProvider),
++                    GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
++            }
++        }
+     }
+ 
+     // Scrollbar colors
+@@ -1439,6 +1472,7 @@ nsLookAndFeel::Init()
+ char16_t
+ nsLookAndFeel::GetPasswordCharacterImpl()
+ {
++    EnsureInit();
+     return sInvisibleCharacter;
+ }
+ 
+@@ -1457,7 +1491,7 @@ nsLookAndFeel::RefreshImpl()
+     mStyle = nullptr;
+ #endif
+ 
+-    Init();
++    mInitialized = false;
+ }
+ 
+ bool
+diff -up firefox-52.0/widget/gtk/nsLookAndFeel.h.1158076 firefox-52.0/widget/gtk/nsLookAndFeel.h
+--- firefox-52.0/widget/gtk/nsLookAndFeel.h.1158076	2016-05-12 19:13:34.000000000 +0200
++++ firefox-52.0/widget/gtk/nsLookAndFeel.h	2017-03-22 10:06:36.461731972 +0100
+@@ -84,8 +84,9 @@ protected:
+     char16_t sInvisibleCharacter;
+     float   sCaretRatio;
+     bool    sMenuSupportsDrag;
++    bool    mInitialized;
+ 
+-    void Init();
++    void EnsureInit();
+ };
+ 
+ #endif
