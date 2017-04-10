@@ -1,0 +1,184 @@
+diff --git a/widget/gtk/nsLookAndFeel.h b/widget/gtk/nsLookAndFeel.h
+--- a/widget/gtk/nsLookAndFeel.h
++++ b/widget/gtk/nsLookAndFeel.h
+@@ -76,13 +76,14 @@ protected:
+     nscolor sTextSelectedBackground;
+     nscolor sMozScrollbar;
+ #if (MOZ_WIDGET_GTK == 3)
+     nscolor sInfoBarText;
+ #endif
+     char16_t sInvisibleCharacter;
+     float   sCaretRatio;
+     bool    sMenuSupportsDrag;
++    bool    mInitialized;
+ 
+-    void Init();
++    void EnsureInit();
+ };
+ 
+ #endif
+
+diff --git a/widget/gtk/nsLookAndFeel.cpp b/widget/gtk/nsLookAndFeel.cpp
+--- a/widget/gtk/nsLookAndFeel.cpp
++++ b/widget/gtk/nsLookAndFeel.cpp
+@@ -45,19 +45,19 @@ using mozilla::LookAndFeel;
+                        (int)((c).blue*255), (int)((c).alpha*255)))
+ 
+ nsLookAndFeel::nsLookAndFeel()
+     : nsXPLookAndFeel(),
+ #if (MOZ_WIDGET_GTK == 2)
+       mStyle(nullptr),
+ #endif
+       mDefaultFontCached(false), mButtonFontCached(false),
+-      mFieldFontCached(false), mMenuFontCached(false)
++      mFieldFontCached(false), mMenuFontCached(false),
++      mInitialized(false)
+ {
+-    Init();    
+ }
+ 
+ nsLookAndFeel::~nsLookAndFeel()
+ {
+ #if (MOZ_WIDGET_GTK == 2)
+     g_object_unref(mStyle);
+ #endif
+ }
+@@ -219,16 +219,18 @@ GetBorderColors(GtkStyleContext* aContex
+     *aDarkColor = GDK_RGBA_TO_NS_RGBA(darkColor);
+     return ret;
+ }
+ #endif
+ 
+ nsresult
+ nsLookAndFeel::NativeGetColor(ColorID aID, nscolor& aColor)
+ {
++    EnsureInit();
++
+ #if (MOZ_WIDGET_GTK == 3)
+     GdkRGBA gdk_color;
+ #endif
+     nsresult res = NS_OK;
+ 
+     switch (aID) {
+         // These colors don't seem to be used for anything anymore in Mozilla
+         // (except here at least TextSelectBackground and TextSelectForeground)
+@@ -670,16 +672,21 @@ nsLookAndFeel::GetIntImpl(IntID aID, int
+         break;
+     }
+ 
+     res = nsXPLookAndFeel::GetIntImpl(aID, aResult);
+     if (NS_SUCCEEDED(res))
+         return res;
+     res = NS_OK;
+ 
++    // We use delayed initialization by EnsureInit() here
++    // to make sure mozilla::Preferences is available (Bug 115807).
++    // eIntID_UseAccessibilityTheme is requested before user preferences
++    // are read, and so EnsureInit(), which depends on preference values,
++    // is deliberately delayed until required.
+     switch (aID) {
+     case eIntID_CaretBlinkTime:
+         {
+             GtkSettings *settings;
+             gint blink_time;
+             gboolean blink;
+ 
+             settings = gtk_settings_get_default ();
+@@ -832,16 +839,17 @@ nsLookAndFeel::GetIntImpl(IntID aID, int
+     case eIntID_IMESelectedRawTextUnderlineStyle:
+     case eIntID_IMESelectedConvertedTextUnderline:
+         aResult = NS_STYLE_TEXT_DECORATION_STYLE_NONE;
+         break;
+     case eIntID_SpellCheckerUnderlineStyle:
+         aResult = NS_STYLE_TEXT_DECORATION_STYLE_WAVY;
+         break;
+     case eIntID_MenuBarDrag:
++        EnsureInit();
+         aResult = sMenuSupportsDrag;
+         break;
+     case eIntID_ScrollbarButtonAutoRepeatBehavior:
+         aResult = 1;
+         break;
+     case eIntID_SwipeAnimationEnabled:
+         aResult = 0;
+         break;
+@@ -872,16 +880,17 @@ nsLookAndFeel::GetFloatImpl(FloatID aID,
+     switch (aID) {
+     case eFloatID_IMEUnderlineRelativeSize:
+         aResult = 1.0f;
+         break;
+     case eFloatID_SpellCheckerUnderlineRelativeSize:
+         aResult = 1.0f;
+         break;
+     case eFloatID_CaretAspectRatio:
++        EnsureInit();
+         aResult = sCaretRatio;
+         break;
+     default:
+         aResult = -1.0;
+         res = NS_ERROR_FAILURE;
+     }
+     return res;
+ }
+@@ -1052,21 +1061,25 @@ nsLookAndFeel::GetFontImpl(FontID aID, n
+   }
+ 
+   aFontName = *cachedFontName;
+   aFontStyle = *cachedFontStyle;
+   return true;
+ }
+ 
+ void
+-nsLookAndFeel::Init()
++nsLookAndFeel::EnsureInit()
+ {
+     GdkColor colorValue;
+     GdkColor *colorValuePtr;
+ 
++    if (mInitialized)
++        return;
++    mInitialized = true;
++
+ #if (MOZ_WIDGET_GTK == 2)
+     NS_ASSERTION(!mStyle, "already initialized");
+     // GtkInvisibles come with a refcount that is not floating
+     // (since their initialization code calls g_object_ref_sink) and
+     // their destroy code releases that reference (which means they
+     // have to be explicitly destroyed, since calling unref enough
+     // to cause destruction would lead to *another* unref).
+     // However, this combination means that it's actually still ok
+@@ -1445,16 +1458,17 @@ nsLookAndFeel::Init()
+ 
+     gtk_widget_destroy(window);
+ }
+ 
+ // virtual
+ char16_t
+ nsLookAndFeel::GetPasswordCharacterImpl()
+ {
++    EnsureInit();
+     return sInvisibleCharacter;
+ }
+ 
+ void
+ nsLookAndFeel::RefreshImpl()
+ {
+     nsXPLookAndFeel::RefreshImpl();
+ 
+@@ -1463,15 +1477,15 @@ nsLookAndFeel::RefreshImpl()
+     mFieldFontCached = false;
+     mMenuFontCached = false;
+ 
+ #if (MOZ_WIDGET_GTK == 2)
+     g_object_unref(mStyle);
+     mStyle = nullptr;
+ #endif
+ 
+-    Init();
++    mInitialized = false;
+ }
+ 
+ bool
+ nsLookAndFeel::GetEchoPasswordImpl() {
+     return false;
+ }

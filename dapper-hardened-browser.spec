@@ -102,14 +102,14 @@
 
 Summary:        Dapper Linux Hardened Browser
 Name:           dapper-hardened-browser
-Version:        52.0
-Release:        7%{?pre_tag}%{?dist}
+Version:        52.0.2
+Release:        3%{?pre_tag}%{?dist}
 URL:            https://github.com/dapperlinux/dapper-hardened/browser
 License:        MPLv1.1 or GPLv2+ or LGPLv2+
 Group:          Applications/Internet
 Source0:        https://archive.mozilla.org/pub/firefox/releases/%{version}%{?pre_version}/source/firefox-%{version}%{?pre_version}.source.tar.xz
 %if %{build_langpacks}
-#Source1:        firefox-langpacks-%{version}%{?pre_version}-20170303.tar.xz
+#Source1:        firefox-langpacks-%{version}%{?pre_version}-20170329.tar.xz
 %endif
 Source10:       firefox-mozconfig
 Source12:       browser-redhat-default-prefs.js
@@ -161,8 +161,9 @@ Patch406:        mozilla-256180.patch
 # Rebase Gtk3 widget code to latest trunk to
 # fix various rendering problems
 Patch407:        widget-rebase.patch
-Patch408:        mozilla-1348168.patch
-Patch409:        mozilla-1158076.patch
+Patch410:        mozilla-1348576.patch
+Patch411:        mozilla-1158076-1.patch
+Patch412:        mozilla-1158076-2.patch
 
 # Debian patches
 Patch500:        mozilla-440908.patch
@@ -331,8 +332,10 @@ cd %{tarballdir}
 # Rebase Gtk3 widget code to latest trunk to
 # fix various rendering problems
 %patch407 -p1 -b .widget-rebase
-%patch408 -p1 -b .1348168
-%patch409 -p1 -b .1158076
+# Disabled due to rhbz#1435964
+%patch410 -p1 -b .1348576
+%patch411 -p1 -b .1158076-1
+%patch412 -p1 -b .1158076-2
 
 # Debian extension patch
 %patch500 -p1 -b .440908
@@ -811,6 +814,7 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 %{mozappdir}/browser/features/e10srollout@mozilla.org.xpi
 %{mozappdir}/browser/features/firefox@getpocket.com.xpi
 %{mozappdir}/browser/features/webcompat@mozilla.org.xpi
+%{mozappdir}/browser/features/deployment-checker@mozilla.org.xpi
 # That's Windows only
 %ghost %{mozappdir}/browser/features/aushelper@mozilla.org.xpi
 %attr(644, root, root) %{mozappdir}/browser/blocklist.xml
@@ -867,8 +871,18 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 #---------------------------------------------------------------------
 
 %changelog
-* Thu Mar 23 2017 Matthew Ruffell <msr50@uclive.ac.nz> - 52.0-7
+* Mon Apr 10 2017 Matthew Ruffell <msr50@uclive.ac.nz> - 52.0.2-3
 - Dapper Hardened Browser Rebranded and Built
+
+* Fri Mar 31 2017 Martin Stransky <stransky@redhat.com> - 52.0.2-2
+- Added patch for mozbz#1348576 - enable e10s by default
+- Added patch for mozbz#1158076 - enable dark theme by pref
+
+* Wed Mar 29 2017 Jan Horak <jhorak@redhat.com> - 52.0.2-1
+- Update to 52.0.2
+
+* Mon Mar 27 2017 Martin Stransky <stransky@redhat.com> - 52.0-7
+- Reverted mozbz#1158076 due to rhbz#1435964
 
 * Wed Mar 22 2017 Martin Stransky <stransky@redhat.com> - 52.0-6
 - Added fix for CVE-2017-5428
