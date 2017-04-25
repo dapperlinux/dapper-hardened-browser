@@ -13,8 +13,6 @@ Categories=Network;WebBrowser;
 Keywords=web;browser;internet;
 Actions=new-window;
 
-Name[en_NZ]=dapper-hardened-browser
-
 [Desktop Action new-window]
 Name=Open a New Window
 Exec=dapper-hardened-browser %u

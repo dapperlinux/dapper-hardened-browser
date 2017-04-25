@@ -1,32 +1,7 @@
-diff --git a/widget/gtk/nsLookAndFeel.h b/widget/gtk/nsLookAndFeel.h
---- a/widget/gtk/nsLookAndFeel.h
-+++ b/widget/gtk/nsLookAndFeel.h
-@@ -76,13 +76,14 @@ protected:
-     nscolor sTextSelectedBackground;
-     nscolor sMozScrollbar;
- #if (MOZ_WIDGET_GTK == 3)
-     nscolor sInfoBarText;
- #endif
-     char16_t sInvisibleCharacter;
-     float   sCaretRatio;
-     bool    sMenuSupportsDrag;
-+    bool    mInitialized;
- 
--    void Init();
-+    void EnsureInit();
- };
- 
- #endif
-
-diff --git a/widget/gtk/nsLookAndFeel.cpp b/widget/gtk/nsLookAndFeel.cpp
---- a/widget/gtk/nsLookAndFeel.cpp
-+++ b/widget/gtk/nsLookAndFeel.cpp
-@@ -45,19 +45,19 @@ using mozilla::LookAndFeel;
-                        (int)((c).blue*255), (int)((c).alpha*255)))
- 
- nsLookAndFeel::nsLookAndFeel()
-     : nsXPLookAndFeel(),
- #if (MOZ_WIDGET_GTK == 2)
+diff -up firefox-53.0/widget/gtk/nsLookAndFeel.cpp.1158076-2 firefox-53.0/widget/gtk/nsLookAndFeel.cpp
+--- firefox-53.0/widget/gtk/nsLookAndFeel.cpp.1158076-2	2017-04-18 13:09:01.756315856 +0200
++++ firefox-53.0/widget/gtk/nsLookAndFeel.cpp	2017-04-18 13:10:10.615069083 +0200
+@@ -49,9 +49,9 @@ nsLookAndFeel::nsLookAndFeel()
        mStyle(nullptr),
  #endif
        mDefaultFontCached(false), mButtonFontCached(false),
@@ -38,17 +13,7 @@ diff --git a/widget/gtk/nsLookAndFeel.cpp b/widget/gtk/nsLookAndFeel.cpp
  }
  
  nsLookAndFeel::~nsLookAndFeel()
- {
- #if (MOZ_WIDGET_GTK == 2)
-     g_object_unref(mStyle);
- #endif
- }
-@@ -219,16 +219,18 @@ GetBorderColors(GtkStyleContext* aContex
-     *aDarkColor = GDK_RGBA_TO_NS_RGBA(darkColor);
-     return ret;
- }
- #endif
- 
+@@ -223,6 +223,8 @@ GetBorderColors(GtkStyleContext* aContex
  nsresult
  nsLookAndFeel::NativeGetColor(ColorID aID, nscolor& aColor)
  {
@@ -57,17 +22,7 @@ diff --git a/widget/gtk/nsLookAndFeel.cpp b/widget/gtk/nsLookAndFeel.cpp
  #if (MOZ_WIDGET_GTK == 3)
      GdkRGBA gdk_color;
  #endif
-     nsresult res = NS_OK;
- 
-     switch (aID) {
-         // These colors don't seem to be used for anything anymore in Mozilla
-         // (except here at least TextSelectBackground and TextSelectForeground)
-@@ -670,16 +672,21 @@ nsLookAndFeel::GetIntImpl(IntID aID, int
-         break;
-     }
- 
-     res = nsXPLookAndFeel::GetIntImpl(aID, aResult);
-     if (NS_SUCCEEDED(res))
+@@ -674,6 +676,11 @@ nsLookAndFeel::GetIntImpl(IntID aID, int
          return res;
      res = NS_OK;
  
@@ -79,17 +34,7 @@ diff --git a/widget/gtk/nsLookAndFeel.cpp b/widget/gtk/nsLookAndFeel.cpp
      switch (aID) {
      case eIntID_CaretBlinkTime:
          {
-             GtkSettings *settings;
-             gint blink_time;
-             gboolean blink;
- 
-             settings = gtk_settings_get_default ();
-@@ -832,16 +839,17 @@ nsLookAndFeel::GetIntImpl(IntID aID, int
-     case eIntID_IMESelectedRawTextUnderlineStyle:
-     case eIntID_IMESelectedConvertedTextUnderline:
-         aResult = NS_STYLE_TEXT_DECORATION_STYLE_NONE;
-         break;
-     case eIntID_SpellCheckerUnderlineStyle:
+@@ -836,6 +843,7 @@ nsLookAndFeel::GetIntImpl(IntID aID, int
          aResult = NS_STYLE_TEXT_DECORATION_STYLE_WAVY;
          break;
      case eIntID_MenuBarDrag:
@@ -97,17 +42,7 @@ diff --git a/widget/gtk/nsLookAndFeel.cpp b/widget/gtk/nsLookAndFeel.cpp
          aResult = sMenuSupportsDrag;
          break;
      case eIntID_ScrollbarButtonAutoRepeatBehavior:
-         aResult = 1;
-         break;
-     case eIntID_SwipeAnimationEnabled:
-         aResult = 0;
-         break;
-@@ -872,16 +880,17 @@ nsLookAndFeel::GetFloatImpl(FloatID aID,
-     switch (aID) {
-     case eFloatID_IMEUnderlineRelativeSize:
-         aResult = 1.0f;
-         break;
-     case eFloatID_SpellCheckerUnderlineRelativeSize:
+@@ -876,6 +884,7 @@ nsLookAndFeel::GetFloatImpl(FloatID aID,
          aResult = 1.0f;
          break;
      case eFloatID_CaretAspectRatio:
@@ -115,17 +50,7 @@ diff --git a/widget/gtk/nsLookAndFeel.cpp b/widget/gtk/nsLookAndFeel.cpp
          aResult = sCaretRatio;
          break;
      default:
-         aResult = -1.0;
-         res = NS_ERROR_FAILURE;
-     }
-     return res;
- }
-@@ -1052,21 +1061,25 @@ nsLookAndFeel::GetFontImpl(FontID aID, n
-   }
- 
-   aFontName = *cachedFontName;
-   aFontStyle = *cachedFontStyle;
-   return true;
+@@ -1056,11 +1065,15 @@ nsLookAndFeel::GetFontImpl(FontID aID, n
  }
  
  void
@@ -142,17 +67,7 @@ diff --git a/widget/gtk/nsLookAndFeel.cpp b/widget/gtk/nsLookAndFeel.cpp
  #if (MOZ_WIDGET_GTK == 2)
      NS_ASSERTION(!mStyle, "already initialized");
      // GtkInvisibles come with a refcount that is not floating
-     // (since their initialization code calls g_object_ref_sink) and
-     // their destroy code releases that reference (which means they
-     // have to be explicitly destroyed, since calling unref enough
-     // to cause destruction would lead to *another* unref).
-     // However, this combination means that it's actually still ok
-@@ -1445,16 +1458,17 @@ nsLookAndFeel::Init()
- 
-     gtk_widget_destroy(window);
- }
- 
- // virtual
+@@ -1451,6 +1464,7 @@ nsLookAndFeel::Init()
  char16_t
  nsLookAndFeel::GetPasswordCharacterImpl()
  {
@@ -160,17 +75,7 @@ diff --git a/widget/gtk/nsLookAndFeel.cpp b/widget/gtk/nsLookAndFeel.cpp
      return sInvisibleCharacter;
  }
  
- void
- nsLookAndFeel::RefreshImpl()
- {
-     nsXPLookAndFeel::RefreshImpl();
- 
-@@ -1463,15 +1477,15 @@ nsLookAndFeel::RefreshImpl()
-     mFieldFontCached = false;
-     mMenuFontCached = false;
- 
- #if (MOZ_WIDGET_GTK == 2)
-     g_object_unref(mStyle);
+@@ -1469,7 +1483,7 @@ nsLookAndFeel::RefreshImpl()
      mStyle = nullptr;
  #endif
  
@@ -179,6 +84,17 @@ diff --git a/widget/gtk/nsLookAndFeel.cpp b/widget/gtk/nsLookAndFeel.cpp
  }
  
  bool
- nsLookAndFeel::GetEchoPasswordImpl() {
-     return false;
- }
+diff -up firefox-53.0/widget/gtk/nsLookAndFeel.h.1158076-2 firefox-53.0/widget/gtk/nsLookAndFeel.h
+--- firefox-53.0/widget/gtk/nsLookAndFeel.h.1158076-2	2017-04-11 06:15:20.000000000 +0200
++++ firefox-53.0/widget/gtk/nsLookAndFeel.h	2017-04-18 13:09:01.759315845 +0200
+@@ -81,8 +81,9 @@ protected:
+     char16_t sInvisibleCharacter;
+     float   sCaretRatio;
+     bool    sMenuSupportsDrag;
++    bool    mInitialized;
+ 
+-    void Init();
++    void EnsureInit();
+ };
+ 
+ #endif

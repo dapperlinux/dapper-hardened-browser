@@ -1,8 +1,13 @@
-diff -up firefox-52.0.2/modules/libpref/init/all.js.1158076-1 firefox-52.0.2/modules/libpref/init/all.js
---- firefox-52.0.2/modules/libpref/init/all.js.1158076-1	2017-03-31 09:44:28.377647329 +0200
-+++ firefox-52.0.2/modules/libpref/init/all.js	2017-03-31 09:46:02.847234586 +0200
-@@ -4646,6 +4646,8 @@ pref("gfx.apitrace.enabled",false);
- pref("gfx.content.use-native-pushlayer", true);
+diff --git a/modules/libpref/init/all.js b/modules/libpref/init/all.js
+--- a/modules/libpref/init/all.js
++++ b/modules/libpref/init/all.js
+@@ -4733,16 +4733,18 @@ pref("gfx.content.always-paint", false);
+ 
+ #ifdef ANDROID
+ pref("gfx.apitrace.enabled",false);
+ #endif
+ 
+ #ifdef MOZ_X11
  #ifdef MOZ_WIDGET_GTK
  pref("gfx.xrender.enabled",false);
 +pref("widget.chrome.allow-gtk-dark-theme", false);
@@ -10,28 +15,40 @@ diff -up firefox-52.0.2/modules/libpref/init/all.js.1158076-1 firefox-52.0.2/mod
  #endif
  #endif
  
-diff -up firefox-52.0.2/widget/gtk/nsLookAndFeel.cpp.1158076-1 firefox-52.0.2/widget/gtk/nsLookAndFeel.cpp
---- firefox-52.0.2/widget/gtk/nsLookAndFeel.cpp.1158076-1	2017-03-31 09:44:28.374647342 +0200
-+++ firefox-52.0.2/widget/gtk/nsLookAndFeel.cpp	2017-03-31 09:44:35.125617758 +0200
-@@ -1134,16 +1134,27 @@ nsLookAndFeel::Init()
+ #ifdef XP_WIN
+ // Whether to disable the automatic detection and use of direct2d.
+ pref("gfx.direct2d.disabled", false);
+ 
+ // Whether to attempt to enable Direct2D regardless of automatic detection or
+diff --git a/widget/gtk/nsLookAndFeel.cpp b/widget/gtk/nsLookAndFeel.cpp
+--- a/widget/gtk/nsLookAndFeel.cpp
++++ b/widget/gtk/nsLookAndFeel.cpp
+@@ -1128,26 +1128,39 @@ nsLookAndFeel::Init()
+     GdkRGBA color;
+     GtkStyleContext *style;
+ 
+     // Gtk manages a screen's CSS in the settings object so we
+     // ask Gtk to create it explicitly. Otherwise we may end up
      // with wrong color theme, see Bug 972382
      GtkSettings *settings = gtk_settings_get_for_screen(gdk_screen_get_default());
  
 -    // Disable dark theme because it interacts poorly with widget styling in
 -    // web content (see bug 1216658).
--    // To avoid triggering reload of theme settings unnecessarily, only set the
--    // setting when necessary.
-     const gchar* dark_setting = "gtk-application-prefer-dark-theme";
--    gboolean dark;
--    g_object_get(settings, dark_setting, &dark, nullptr);
-+    gboolean darkThemeDefault;
-+    g_object_get(settings, dark_setting, &darkThemeDefault, nullptr);
- 
--    if (dark && !PR_GetEnv("MOZ_ALLOW_GTK_DARK_THEME")) {
--        g_object_set(settings, dark_setting, FALSE, nullptr);
 +    // Dark themes interacts poorly with widget styling (see bug 1216658).
 +    // We disable dark themes by default for all processes (chrome, web content)
 +    // but allow user to overide it by prefs.
++    const gchar* dark_setting = "gtk-application-prefer-dark-theme";
++    gboolean darkThemeDefault;
++    g_object_get(settings, dark_setting, &darkThemeDefault, nullptr);
++
+     // To avoid triggering reload of theme settings unnecessarily, only set the
+     // setting when necessary.
+-    const gchar* dark_setting = "gtk-application-prefer-dark-theme";
+-    gboolean dark;
+-    g_object_get(settings, dark_setting, &dark, nullptr);
+-
+-    if (dark && !PR_GetEnv("MOZ_ALLOW_GTK_DARK_THEME")) {
+-        g_object_set(settings, dark_setting, FALSE, nullptr);
 +    if (darkThemeDefault) {
 +        bool allowDarkTheme;
 +        if (XRE_IsContentProcess()) {
@@ -49,3 +66,9 @@ diff -up firefox-52.0.2/widget/gtk/nsLookAndFeel.cpp.1158076-1 firefox-52.0.2/wi
      }
  
      // Scrollbar colors
+     style = ClaimStyleContext(MOZ_GTK_SCROLLBAR_TROUGH_VERTICAL);
+     gtk_style_context_get_background_color(style, GTK_STATE_FLAG_NORMAL, &color);
+     sMozScrollbar = GDK_RGBA_TO_NS_RGBA(color);
+     ReleaseStyleContext(style);
+ 
+

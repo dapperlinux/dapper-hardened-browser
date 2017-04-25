@@ -4,6 +4,13 @@
 # Use system nspr/nss?
 %define system_nss        1
 
+# Use system hunspell?
+%if 0%{?fedora} > 25
+%define system_hunspell   1
+%else
+%define system_hunspell   0
+%endif
+
 # Use system sqlite?
 %if 0%{?fedora} > 25
 %define system_sqlite     1
@@ -75,7 +82,7 @@
 %if %{?system_nss}
 %global nspr_version 4.10.10
 %global nspr_build_version %(pkg-config --silence-errors --modversion nspr 2>/dev/null || echo 65536)
-%global nss_version 3.28.3
+%global nss_version 3.29.3
 %global nss_build_version %(pkg-config --silence-errors --modversion nss 2>/dev/null || echo 65536)
 %endif
 
@@ -102,14 +109,14 @@
 
 Summary:        Dapper Linux Hardened Browser
 Name:           dapper-hardened-browser
-Version:        52.0.2
+Version:        53.0
 Release:        3%{?pre_tag}%{?dist}
 URL:            https://github.com/dapperlinux/dapper-hardened/browser
 License:        MPLv1.1 or GPLv2+ or LGPLv2+
 Group:          Applications/Internet
 Source0:        https://archive.mozilla.org/pub/firefox/releases/%{version}%{?pre_version}/source/firefox-%{version}%{?pre_version}.source.tar.xz
 %if %{build_langpacks}
-#Source1:        firefox-langpacks-%{version}%{?pre_version}-20170329.tar.xz
+#Source1:        firefox-langpacks-%{version}%{?pre_version}-20170418.tar.xz
 %endif
 Source10:       firefox-mozconfig
 Source12:       browser-redhat-default-prefs.js
@@ -118,13 +125,14 @@ Source21:       firefox.sh.in
 Source23:       dapper-hardened-browser.1
 Source24:       mozilla-api-key
 Source25:       firefox-symbolic.svg
+Source26:       distribution.ini
 
 # Dapper Linux Additions
-Source26:	autoconfig.js
 Source27:	mozilla.cfg
 Source28:	distribution.tar.xz
 Source29:	stylish.sqlite
 Source30:	unofficial.tar.xz
+Source31:	autoconfig.js
 
 # Build patches
 Patch0:         firefox-install-dir.patch
@@ -134,9 +142,9 @@ Patch18:        xulrunner-24.0-jemalloc-ppc.patch
 # workaround linking issue on s390 (JSContext::updateMallocCounter(size_t) not found)
 Patch19:        xulrunner-24.0-s390-inlines.patch
 Patch20:        firefox-build-prbool.patch
-Patch24:        firefox-debug.patch
 Patch25:        rhbz-1219542-s390-build.patch
 Patch26:        build-icu-big-endian.patch
+Patch27:        mozilla-1335250.patch
 
 # Fedora specific patches
 # Unable to install addons from https pages
@@ -152,18 +160,16 @@ Patch226:        rhbz-1354671.patch
 # Fix depends on p11-kit-trust 0.23.4 and enhanced ca-certificates.rpm
 Patch227:        rhbz-1400293-fix-mozilla-1324096.patch
 Patch228:        rhbz-1400293-workaround.patch
+Patch229:        firefox-nss-version.patch
 
 
 # Upstream patches
 Patch304:        mozilla-1253216.patch
 Patch402:        mozilla-1196777.patch
 Patch406:        mozilla-256180.patch
-# Rebase Gtk3 widget code to latest trunk to
-# fix various rendering problems
-Patch407:        widget-rebase.patch
-Patch410:        mozilla-1348576.patch
-Patch411:        mozilla-1158076-1.patch
-Patch412:        mozilla-1158076-2.patch
+Patch407:        mozilla-1348576.patch
+Patch408:        mozilla-1158076-1.patch
+Patch409:        mozilla-1158076-2.patch
 
 # Debian patches
 Patch500:        mozilla-440908.patch
@@ -191,7 +197,9 @@ BuildRequires:  pkgconfig(pango)
 BuildRequires:  pkgconfig(freetype2) >= %{freetype_version}
 BuildRequires:  pkgconfig(xt)
 BuildRequires:  pkgconfig(xrender)
+%if %{?system_hunspell}
 BuildRequires:  pkgconfig(hunspell)
+%endif
 BuildRequires:  pkgconfig(libstartup-notification-1.0)
 %if %{?alsa_backend}
 BuildRequires:  pkgconfig(alsa)
@@ -298,10 +306,10 @@ cd %{tarballdir}
 %patch18 -p1 -b .jemalloc-ppc
 %patch19 -p2 -b .s390-inlines
 %patch20 -p1 -b .prbool
-%patch24 -p1 -b .debug
 %ifarch s390
 %patch25 -p1 -b .rhbz-1219542-s390
 %endif
+%patch27 -p1 -b .1335250
 
 %patch3  -p1 -b .arm
 
@@ -325,17 +333,14 @@ cd %{tarballdir}
 %else
 %patch228 -p1 -b .rh1400293
 %endif
+%patch229 -p1 -b .nss-version
 
 %patch304 -p1 -b .1253216
 %patch402 -p1 -b .1196777
 %patch406 -p1 -b .256180
-# Rebase Gtk3 widget code to latest trunk to
-# fix various rendering problems
-%patch407 -p1 -b .widget-rebase
-# Disabled due to rhbz#1435964
-%patch410 -p1 -b .1348576
-%patch411 -p1 -b .1158076-1
-%patch412 -p1 -b .1158076-2
+%patch407 -p1 -b .1348576
+%patch408 -p1 -b .1158076-1
+%patch409 -p1 -b .1158076-2
 
 # Debian extension patch
 %patch500 -p1 -b .440908
@@ -383,6 +388,12 @@ echo "ac_add_options --disable-elf-hack" >> .mozconfig
 
 %if %{?alsa_backend}
 echo "ac_add_options --enable-alsa" >> .mozconfig
+%endif
+
+%if %{?system_hunspell}
+echo "ac_add_options --enable-system-hunspell" >> .mozconfig
+%else
+echo "ac_add_options --disable-system-hunspell" >> .mozconfig
 %endif
 
 %if %{?debug_build}
@@ -449,6 +460,8 @@ echo "ac_add_options --without-system-icu" >> .mozconfig
 
 %if %{?build_with_rust}
 echo "ac_add_options --enable-rust" >> .mozconfig
+%else
+echo "ac_add_options --disable-rust" >> .mozconfig
 %endif
 
 %ifarch aarch64 ppc64 s390x
@@ -732,6 +745,10 @@ sed -i -e "s/\[Crash Reporter\]/[Crash Reporter]\nEnabled=1/" $RPM_BUILD_ROOT%{m
 # Default
 %{__cp} %{SOURCE12} ${RPM_BUILD_ROOT}%{mozappdir}/browser/defaults/preferences
 
+# Add distribution.ini
+%{__mkdir_p} ${RPM_BUILD_ROOT}%{mozappdir}/distribution
+%{__cp} %{SOURCE26} ${RPM_BUILD_ROOT}%{mozappdir}/distribution
+
 # Remove copied libraries to speed up build
 rm -f ${RPM_BUILD_ROOT}%{mozappdirdev}/sdk/lib/libmozjs.so
 rm -f ${RPM_BUILD_ROOT}%{mozappdirdev}/sdk/lib/libmozalloc.so
@@ -739,7 +756,7 @@ rm -f ${RPM_BUILD_ROOT}%{mozappdirdev}/sdk/lib/libxul.so
 
 # Add Dapper Linux additions
 %{__mkdir_p} $RPM_BUILD_ROOT%{mozappdir}/defaults/profile
-%{__cp} %{SOURCE26} $RPM_BUILD_ROOT%{mozappdir}/defaults/pref/
+%{__cp} %{SOURCE31} $RPM_BUILD_ROOT%{mozappdir}/defaults/pref/
 %{__cp} %{SOURCE27} $RPM_BUILD_ROOT%{mozappdir}
 cp -r $RPM_BUILD_DIR/%{name}-%{version}/distribution $RPM_BUILD_ROOT%{mozappdir}
 chmod -R +755 $RPM_BUILD_ROOT%{mozappdir}/distribution
@@ -814,7 +831,7 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 %{mozappdir}/browser/features/e10srollout@mozilla.org.xpi
 %{mozappdir}/browser/features/firefox@getpocket.com.xpi
 %{mozappdir}/browser/features/webcompat@mozilla.org.xpi
-%{mozappdir}/browser/features/deployment-checker@mozilla.org.xpi
+%{mozappdir}/distribution/distribution.ini
 # That's Windows only
 %ghost %{mozappdir}/browser/features/aushelper@mozilla.org.xpi
 %attr(644, root, root) %{mozappdir}/browser/blocklist.xml
@@ -859,9 +876,6 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 %if !%{?system_libicu}
 %{mozappdir}/icudt*.dat
 %endif
-%exclude %{_includedir}
-%exclude %{_libdir}/firefox-devel-%{version}
-%exclude %{_datadir}/idl
 %if !%{?system_nss}
 %{mozappdir}/libfreeblpriv3.chk
 %{mozappdir}/libnssdbm3.chk
@@ -871,8 +885,22 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 #---------------------------------------------------------------------
 
 %changelog
-* Mon Apr 10 2017 Matthew Ruffell <msr50@uclive.ac.nz> - 52.0.2-3
+* Tue Apr 25 2017 Matthew Ruffell <msr50@uclive.ac.nz> - 53.0-4
 - Dapper Hardened Browser Rebranded and Built
+
+* Thu Apr 20 2017 Martin Stransky <stransky@redhat.com> - 53.0-3
+- Enabled second arches
+
+* Tue Apr 18 2017 Martin Stransky <stransky@redhat.com> - 53.0-2
+- Disable system hunspell library when necessary
+
+* Tue Apr 18 2017 Jan Horak <jhorak@redhat.com> - 52.0.2-3
+- Do not use color management until it is fixed for some broken profiles,
+  ie. don't set gfx.color_management.enablev4 to true (rhbz#1403970).
+- Added distribution.ini file to fix mozbz#1354489
+
+* Tue Apr 18 2017 Martin Stransky <stransky@redhat.com> - 53.0-1
+- Updated to 53.0 (B6)
 
 * Fri Mar 31 2017 Martin Stransky <stransky@redhat.com> - 52.0.2-2
 - Added patch for mozbz#1348576 - enable e10s by default

@@ -1,6 +1,6 @@
-diff -up firefox-52.0.2/browser/extensions/e10srollout/bootstrap.js.1348576 firefox-52.0.2/browser/extensions/e10srollout/bootstrap.js
---- firefox-52.0.2/browser/extensions/e10srollout/bootstrap.js.1348576	2017-03-31 09:36:20.070787199 +0200
-+++ firefox-52.0.2/browser/extensions/e10srollout/bootstrap.js	2017-03-31 09:38:09.211308920 +0200
+diff -up firefox-53.0/browser/extensions/e10srollout/bootstrap.js.1348576 firefox-53.0/browser/extensions/e10srollout/bootstrap.js
+--- firefox-53.0/browser/extensions/e10srollout/bootstrap.js.1348576	2017-04-18 13:06:29.660860929 +0200
++++ firefox-53.0/browser/extensions/e10srollout/bootstrap.js	2017-04-18 13:07:34.804627469 +0200
 @@ -9,6 +9,7 @@ const {classes: Cc, interfaces: Ci, util
  Cu.import("resource://gre/modules/Preferences.jsm");
  Cu.import("resource://gre/modules/Services.jsm");
@@ -33,14 +33,15 @@ diff -up firefox-52.0.2/browser/extensions/e10srollout/bootstrap.js.1348576 fire
  const PREF_COHORT_SAMPLE       = "e10s.rollout.cohortSample";
  const PREF_COHORT_NAME         = "e10s.rollout.cohort";
  const PREF_E10S_OPTED_IN       = "browser.tabs.remote.autostart";
-diff -up firefox-52.0.2/browser/extensions/e10srollout/install.rdf.in.1348576 firefox-52.0.2/browser/extensions/e10srollout/install.rdf.in
---- firefox-52.0.2/browser/extensions/e10srollout/install.rdf.in.1348576	2017-03-31 09:36:20.070787199 +0200
-+++ firefox-52.0.2/browser/extensions/e10srollout/install.rdf.in	2017-03-31 09:38:45.579149534 +0200
-@@ -11,6 +11,7 @@
+diff -up firefox-53.0/browser/extensions/e10srollout/install.rdf.in.1348576 firefox-53.0/browser/extensions/e10srollout/install.rdf.in
+--- firefox-53.0/browser/extensions/e10srollout/install.rdf.in.1348576	2017-04-11 06:15:16.000000000 +0200
++++ firefox-53.0/browser/extensions/e10srollout/install.rdf.in	2017-04-18 13:06:29.660860929 +0200
+@@ -10,7 +10,7 @@
+ 
    <Description about="urn:mozilla:install-manifest">
      <em:id>e10srollout@mozilla.org</em:id>
-     <em:version>1.9</em:version>
-+    <em:version>1.9.1</em:version>
+-    <em:version>1.14</em:version>
++    <em:version>1.15</em:version>
      <em:type>2</em:type>
      <em:bootstrap>true</em:bootstrap>
      <em:multiprocessCompatible>true</em:multiprocessCompatible>

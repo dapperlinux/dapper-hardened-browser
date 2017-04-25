@@ -12,27 +12,3 @@ diff -up firefox-52.0/gfx/skia/skia/include/core/SkPreConfig.h.arm firefox-52.0/
  //////////////////////////////////////////////////////////////////////
  
  #if !defined(SKIA_IMPLEMENTATION)
-diff -up firefox-52.0/media/webrtc/trunk/webrtc/build/common.gypi.arm firefox-52.0/media/webrtc/trunk/webrtc/build/common.gypi
---- firefox-52.0/media/webrtc/trunk/webrtc/build/common.gypi.arm	2016-09-05 22:12:57.000000000 +0200
-+++ firefox-52.0/media/webrtc/trunk/webrtc/build/common.gypi	2017-03-03 13:53:52.480754536 +0100
-@@ -312,20 +312,6 @@
-         'defines': [
-           'WEBRTC_ARCH_ARM',
-         ],
--        'conditions': [
--          ['arm_version>=7', {
--            'defines': ['WEBRTC_ARCH_ARM_V7',
--                        'WEBRTC_BUILD_NEON_LIBS'],
--            'conditions': [
--              ['arm_neon==1', {
--                'defines': ['WEBRTC_ARCH_ARM_NEON',],
--              }],
--              ['arm_neon==0 and arm_neon_optional==1', {
--                'defines': ['WEBRTC_DETECT_ARM_NEON',],
--              }],
--            ],
--          }],
--        ],
-       }],
-       ['os_bsd==1', {
-         'defines': [

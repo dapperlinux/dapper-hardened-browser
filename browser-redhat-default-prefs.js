@@ -13,7 +13,6 @@ pref("browser.link.open_external",          3);
 pref("browser.shell.checkDefaultBrowser",   false);
 pref("network.manage-offline-status",       true);
 pref("extensions.shownSelectionUI",         true);
-pref("gfx.color_management.enablev4",       true);
 pref("ui.SpellCheckerUnderlineStyle",       1);
 pref("media.gmp-gmpopenh264.provider.enabled",false);
 pref("media.gmp-gmpopenh264.autoupdate",false);

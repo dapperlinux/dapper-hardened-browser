@@ -1,6 +1,6 @@
 # dapper-hardened-browser
 
-##About
+## About
 The dapper-hardened-browser package contains the latest version of dapper-hardened-browser, a web browser based on Mozilla technologies, customised to provide a hardened browsing experience. Settings (those that reside in about:config) have been tweaked to prevent tracking and information leakage, such as crash reporting, preloading dns and Google safebrowing service.
 
 Many addons are shipped with this browser by default to aid both security, privacy and user interface. Security minded addons includes NoScript, RequestPolicy, uBlock, Disconnect, Ghostery, HTTPS Everywhere, Random Agent Spoofer and Self Destructing Cookies. User experience addons shipped are Stylish, HTitle, Mozilla Labs: Prospector - Oneliner.
@@ -18,7 +18,7 @@ unofficial.tar.xz - Folder containing Dapper Linux branding
 ```
 
 
-##Building Dapper Hardened Browser
+## Building Dapper Hardened Browser
 To build this package, first install an RPM development chain:
 
 ```bash
