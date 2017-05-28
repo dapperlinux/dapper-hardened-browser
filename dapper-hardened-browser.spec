@@ -1,3 +1,7 @@
+%if 0%{?fedora} < 27
+ExcludeArch: ppc64le ppc64 s390x
+%endif
+
 # Use ALSA backend?
 %define alsa_backend      0
 
@@ -23,32 +27,24 @@
 %define system_cairo      0
 
 # Use system libvpx?
-%if 0%{?fedora} > 23
-%define system_libvpx      1
-%else
-%define system_libvpx      0
-%endif
+%define system_libvpx     1
 
 # Use system libicu?
 %if 0%{?fedora} > 27
-%define system_libicu      1
+%define system_libicu     1
 %else
-%define system_libicu      0
+%define system_libicu     0
 %endif
 
 # Big endian platforms
 %ifarch ppc64 s390x
 # Javascript Intl API is not supported on big endian platforms right now:
 # https://bugzilla.mozilla.org/show_bug.cgi?id=1322212
-%define big_endian              1
+%define big_endian        1
 %endif
 
 # Hardened build?
-%if 0%{?fedora} > 20
 %define hardened_build    1
-%else
-%define hardened_build    0
-%endif
 
 %define system_jpeg       1
 
@@ -58,13 +54,11 @@
 %define run_tests         0
 %endif
 
-%define build_with_rust   0
-
-%if 0%{?fedora} > 23
-%ifarch x86_64
 %define build_with_rust   1
-%endif
-%endif
+
+#%ifarch ppc64 ppc64le s390x
+#%define build_with_rust   0
+#%endif
 
 # Build as a debug package?
 %define debug_build       0
@@ -109,14 +103,14 @@
 
 Summary:        Dapper Linux Hardened Browser
 Name:           dapper-hardened-browser
-Version:        53.0
-Release:        3%{?pre_tag}%{?dist}
+Version:        53.0.3
+Release:        2%{?pre_tag}%{?dist}
 URL:            https://github.com/dapperlinux/dapper-hardened/browser
 License:        MPLv1.1 or GPLv2+ or LGPLv2+
 Group:          Applications/Internet
 Source0:        https://archive.mozilla.org/pub/firefox/releases/%{version}%{?pre_version}/source/firefox-%{version}%{?pre_version}.source.tar.xz
 %if %{build_langpacks}
-#Source1:        firefox-langpacks-%{version}%{?pre_version}-20170418.tar.xz
+#Source1: firefox-langpacks-%{version}%{?pre_version}-20170526.tar.xz
 %endif
 Source10:       firefox-mozconfig
 Source12:       browser-redhat-default-prefs.js
@@ -145,6 +139,7 @@ Patch20:        firefox-build-prbool.patch
 Patch25:        rhbz-1219542-s390-build.patch
 Patch26:        build-icu-big-endian.patch
 Patch27:        mozilla-1335250.patch
+Patch28:        build-1360521-missing-cheddar.patch
 
 # Fedora specific patches
 # Unable to install addons from https pages
@@ -157,10 +152,9 @@ Patch225:        mozilla-1005640-accept-lang.patch
 #ARM run-time patch
 Patch226:        rhbz-1354671.patch
 
-# Fix depends on p11-kit-trust 0.23.4 and enhanced ca-certificates.rpm
 Patch227:        rhbz-1400293-fix-mozilla-1324096.patch
-Patch228:        rhbz-1400293-workaround.patch
 Patch229:        firefox-nss-version.patch
+Patch230:        mozilla-rust-config.patch
 
 
 # Upstream patches
@@ -170,6 +164,10 @@ Patch406:        mozilla-256180.patch
 Patch407:        mozilla-1348576.patch
 Patch408:        mozilla-1158076-1.patch
 Patch409:        mozilla-1158076-2.patch
+Patch410:        mozilla-1321521.patch
+Patch411:        mozilla-1321521-2.patch
+Patch412:        mozilla-1337988.patch
+Patch413:        mozilla-1353817.patch
 
 # Debian patches
 Patch500:        mozilla-440908.patch
@@ -229,6 +227,19 @@ Requires:       nss >= %{nss_build_version}
 # Can be removed after firefox is changed to require NSS 3.30.
 BuildRequires:  nss-devel >= 3.29.1-2.1
 Requires:       nss >= 3.29.1-2.1
+%endif
+
+%if 0%{?fedora} < 26
+# Using Conflicts for p11-kit, not Requires, because on multi-arch
+# systems p11-kit isn't yet available for secondary arches like
+# p11-kit.i686 (fallback to libnssckbi.so from NSS).
+# This build contains backports from p11-kit 0.23.4
+Conflicts: p11-kit < 0.23.2-3
+# Requires build with CKA_NSS_MOZILLA_CA_POLICY attribute
+Requires: ca-certificates >= 2017.2.11-1.1
+# Requires NSS build with backports from NSS 3.30
+BuildRequires:  nss-devel >= 3.29.3-1.1
+Requires:       nss >= 3.29.3-1.1
 %endif
 
 BuildRequires:  desktop-file-utils
@@ -310,6 +321,7 @@ cd %{tarballdir}
 %patch25 -p1 -b .rhbz-1219542-s390
 %endif
 %patch27 -p1 -b .1335250
+%patch28 -p2 -b .1360521-missing-cheddar
 
 %patch3  -p1 -b .arm
 
@@ -327,13 +339,9 @@ cd %{tarballdir}
 %patch226 -p1 -b .1354671
 %endif
 
-%if 0%{?fedora} > 25
-# Fix depends on p11-kit-trust 0.23.4 and enhanced ca-certificates.rpm
 %patch227 -p1 -b .rh1400293
-%else
-%patch228 -p1 -b .rh1400293
-%endif
 %patch229 -p1 -b .nss-version
+%patch230 -p1 -b .rust
 
 %patch304 -p1 -b .1253216
 %patch402 -p1 -b .1196777
@@ -341,6 +349,16 @@ cd %{tarballdir}
 %patch407 -p1 -b .1348576
 %patch408 -p1 -b .1158076-1
 %patch409 -p1 -b .1158076-2
+%patch410 -p1 -b .1321521
+%patch411 -p1 -b .1321521-2
+
+%ifarch %{arm}
+%if 0%{?fedora} < 26
+# Workaround for mozbz#1337988
+%patch412 -p1 -b .1337988
+%endif
+%endif
+%patch413 -p1 -b .1353817
 
 # Debian extension patch
 %patch500 -p1 -b .440908
@@ -399,7 +417,6 @@ echo "ac_add_options --disable-system-hunspell" >> .mozconfig
 %if %{?debug_build}
 echo "ac_add_options --enable-debug" >> .mozconfig
 echo "ac_add_options --disable-optimize" >> .mozconfig
-echo "ac_add_options --enable-dtrace" >> .mozconfig
 %else
 %define optimize_flags "none"
 # Fedora 26 (gcc7) needs to disable default build flags (mozbz#1342344)
@@ -464,9 +481,6 @@ echo "ac_add_options --enable-rust" >> .mozconfig
 echo "ac_add_options --disable-rust" >> .mozconfig
 %endif
 
-%ifarch aarch64 ppc64 s390x
-echo "ac_add_options --disable-skia" >> .mozconfig
-%endif
 #---------------------------------------------------------------------
 
 %build
@@ -885,8 +899,40 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 #---------------------------------------------------------------------
 
 %changelog
-* Tue Apr 25 2017 Matthew Ruffell <msr50@uclive.ac.nz> - 53.0-4
+* Sun May 28 2017 Matthew Ruffell <msr50@uclive.ac.nz> - 53.0.3-2
 - Dapper Hardened Browser Rebranded and Built
+
+* Fri May 26 2017 Jan Horak <jhorak@redhat.com> - 53.0.3-1
+- Update to 53.0.3
+
+* Wed May 24 2017 Martin Stransky <stransky@redhat.com> - 53.0.2-8
+- Disabled Rust on ppc64 ppc64le s390x
+
+* Wed May 24 2017 Martin Stransky <stransky@redhat.com> - 53.0.2-7
+- Enabled aarch64 on all Fedoras
+- Enabled Rust on all arches
+
+* Wed May 24 2017 Martin Stransky <stransky@redhat.com> - 53.0.2-6
+- Added aarch64 patch (mozbz#1353817)
+
+* Tue May 16 2017 Martin Stransky <stransky@redhat.com> - 53.0.2-5
+- Arm gcc6 build fix (mozbz#1337988)
+
+* Fri May 12 2017 Martin Stransky <stransky@redhat.com> - 53.0.2-4
+- Enabled rust on ix86
+
+* Thu May 11 2017 Martin Stransky <stransky@redhat.com> - 53.0.2-3
+- Enabled Rust on Arm builds
+
+* Thu May 11 2017 Martin Stransky <stransky@redhat.com> - 53.0.2-2
+- Enabled Arm builds
+
+* Fri May  5 2017 Jan Horak <jhorak@redhat.com> - 53.0.2-1
+- Update to 53.0.2
+- Cannot use disable-skia for any architecture now
+
+* Thu Apr 27 2017 Jan Horak <jhorak@redhat.com> - 53.0-4
+- Added patch from rhbz#1400293
 
 * Thu Apr 20 2017 Martin Stransky <stransky@redhat.com> - 53.0-3
 - Enabled second arches
