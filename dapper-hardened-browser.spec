@@ -1,7 +1,3 @@
-%if 0%{?fedora} < 27
-ExcludeArch: ppc64le ppc64 s390x
-%endif
-
 # Use ALSA backend?
 %define alsa_backend      0
 
@@ -16,7 +12,7 @@ ExcludeArch: ppc64le ppc64 s390x
 %endif
 
 # Use system sqlite?
-%if 0%{?fedora} > 25
+%if 0%{?fedora} > 27
 %define system_sqlite     1
 %else
 %define system_sqlite     0
@@ -53,12 +49,6 @@ ExcludeArch: ppc64le ppc64 s390x
 %else
 %define run_tests         0
 %endif
-
-%define build_with_rust   1
-
-#%ifarch ppc64 ppc64le s390x
-#%define build_with_rust   0
-#%endif
 
 # Build as a debug package?
 %define debug_build       0
@@ -103,14 +93,14 @@ ExcludeArch: ppc64le ppc64 s390x
 
 Summary:        Dapper Linux Hardened Browser
 Name:           dapper-hardened-browser
-Version:        53.0.3
-Release:        2%{?pre_tag}%{?dist}
+Version:        54.0
+Release:        3%{?pre_tag}%{?dist}
 URL:            https://github.com/dapperlinux/dapper-hardened/browser
 License:        MPLv1.1 or GPLv2+ or LGPLv2+
 Group:          Applications/Internet
 Source0:        https://archive.mozilla.org/pub/firefox/releases/%{version}%{?pre_version}/source/firefox-%{version}%{?pre_version}.source.tar.xz
 %if %{build_langpacks}
-#Source1: firefox-langpacks-%{version}%{?pre_version}-20170526.tar.xz
+#Source1: firefox-langpacks-%{version}%{?pre_version}-20170608.tar.xz
 %endif
 Source10:       firefox-mozconfig
 Source12:       browser-redhat-default-prefs.js
@@ -140,6 +130,10 @@ Patch25:        rhbz-1219542-s390-build.patch
 Patch26:        build-icu-big-endian.patch
 Patch27:        mozilla-1335250.patch
 Patch28:        build-1360521-missing-cheddar.patch
+Patch29:        build-big-endian.patch
+Patch30:        fedora-build.patch
+Patch31:        build-ppc64-s390x-curl.patch
+Patch32:        build-rust-ppc64le.patch
 
 # Fedora specific patches
 # Unable to install addons from https pages
@@ -151,10 +145,7 @@ Patch224:        mozilla-1170092.patch
 Patch225:        mozilla-1005640-accept-lang.patch
 #ARM run-time patch
 Patch226:        rhbz-1354671.patch
-
-Patch227:        rhbz-1400293-fix-mozilla-1324096.patch
 Patch229:        firefox-nss-version.patch
-Patch230:        mozilla-rust-config.patch
 
 
 # Upstream patches
@@ -256,10 +247,8 @@ BuildRequires:  pkgconfig(libffi)
 %if %{?run_tests}
 BuildRequires:  xorg-x11-server-Xvfb
 %endif
-%if %{?build_with_rust}
 BuildRequires:  rust
 BuildRequires:  cargo
-%endif
 
 Obsoletes:      mozilla <= 37:1.7.13
 Provides:       webclient
@@ -315,13 +304,16 @@ cd %{tarballdir}
 %patch0  -p1
 
 %patch18 -p1 -b .jemalloc-ppc
-%patch19 -p2 -b .s390-inlines
+#%patch19 -p2 -b .s390-inlines
 %patch20 -p1 -b .prbool
 %ifarch s390
 %patch25 -p1 -b .rhbz-1219542-s390
 %endif
-%patch27 -p1 -b .1335250
-%patch28 -p2 -b .1360521-missing-cheddar
+#%patch28 -p2 -b .1360521-missing-cheddar
+%patch29 -p1 -b .big-endian
+%patch30 -p1 -b .fedora-build
+%patch31 -p1 -b .ppc64-s390x-curl
+%patch32 -p1 -b .rust-ppc64le
 
 %patch3  -p1 -b .arm
 
@@ -339,18 +331,11 @@ cd %{tarballdir}
 %patch226 -p1 -b .1354671
 %endif
 
-%patch227 -p1 -b .rh1400293
-%patch229 -p1 -b .nss-version
-%patch230 -p1 -b .rust
-
 %patch304 -p1 -b .1253216
 %patch402 -p1 -b .1196777
 %patch406 -p1 -b .256180
-%patch407 -p1 -b .1348576
 %patch408 -p1 -b .1158076-1
 %patch409 -p1 -b .1158076-2
-%patch410 -p1 -b .1321521
-%patch411 -p1 -b .1321521-2
 
 %ifarch %{arm}
 %if 0%{?fedora} < 26
@@ -473,12 +458,6 @@ echo "ac_add_options --without-system-libvpx" >> .mozconfig
 echo "ac_add_options --with-system-icu" >> .mozconfig
 %else
 echo "ac_add_options --without-system-icu" >> .mozconfig
-%endif
-
-%if %{?build_with_rust}
-echo "ac_add_options --enable-rust" >> .mozconfig
-%else
-echo "ac_add_options --disable-rust" >> .mozconfig
 %endif
 
 #---------------------------------------------------------------------
@@ -845,6 +824,7 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 %{mozappdir}/browser/features/e10srollout@mozilla.org.xpi
 %{mozappdir}/browser/features/firefox@getpocket.com.xpi
 %{mozappdir}/browser/features/webcompat@mozilla.org.xpi
+%{mozappdir}/browser/features/screenshots@mozilla.org.xpi
 %{mozappdir}/distribution/distribution.ini
 # That's Windows only
 %ghost %{mozappdir}/browser/features/aushelper@mozilla.org.xpi
@@ -859,6 +839,7 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 %{mozappdir}/chrome.manifest
 %{mozappdir}/run-mozilla.sh
 %{mozappdir}/application.ini
+%{mozappdir}/pingsender
 %exclude %{mozappdir}/removed-files
 %{_datadir}/icons/hicolor/16x16/apps/dapper-hardened-browser.png
 %{_datadir}/icons/hicolor/22x22/apps/dapper-hardened-browser.png
@@ -899,8 +880,18 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 #---------------------------------------------------------------------
 
 %changelog
-* Sun May 28 2017 Matthew Ruffell <msr50@uclive.ac.nz> - 53.0.3-2
+* Tue Jun 20 2017 Matthew Ruffell <msr50@uclive.ac.nz> - 54.0-3
 - Dapper Hardened Browser Rebranded and Built
+
+* Tue Jun 13 2017 Jan Horak <jhorak@redhat.com> - 54.0-2
+- Update to 54.0 (B3)
+
+* Thu Jun  8 2017 Jan Horak <jhorak@redhat.com> - 54.0-1
+- Update to 54.0
+
+* Wed May 31 2017 Jan Horak <jhorak@redhat.com> - 53.0.3-2
+- Added patch for big endian platforms
+- Do not restrict architectures in older Fedoras
 
 * Fri May 26 2017 Jan Horak <jhorak@redhat.com> - 53.0.3-1
 - Update to 53.0.3

@@ -1,7 +1,7 @@
-diff -up firefox-53.0/browser/app/profile/firefox.js.addons firefox-53.0/browser/app/profile/firefox.js
---- firefox-53.0/browser/app/profile/firefox.js.addons	2017-04-18 10:03:02.300234728 +0200
-+++ firefox-53.0/browser/app/profile/firefox.js	2017-04-18 10:05:38.170676613 +0200
-@@ -63,7 +63,8 @@ pref("extensions.systemAddon.update.url"
+diff -up firefox-54.0/browser/app/profile/firefox.js.addons firefox-54.0/browser/app/profile/firefox.js
+--- firefox-54.0/browser/app/profile/firefox.js.addons	2017-06-08 13:59:20.504220317 +0200
++++ firefox-54.0/browser/app/profile/firefox.js	2017-06-08 14:01:54.388653599 +0200
+@@ -66,7 +66,8 @@ pref("extensions.screenshots.system-disa
  
  // Disable add-ons that are not installed by the user in all scopes by default.
  // See the SCOPE constants in AddonManager.jsm for values to use here.
@@ -9,5 +9,5 @@ diff -up firefox-53.0/browser/app/profile/firefox.js.addons firefox-53.0/browser
 +pref("extensions.autoDisableScopes", 0);
 +pref("extensions.showMismatchUI", false);
  
- // Whether or not webextension themes are supported.
- pref("extensions.webextensions.themes.enabled", false);
+ // Add-on content security policies.
+ pref("extensions.webextensions.base-content-security-policy", "script-src 'self' https://* moz-extension: blob: filesystem: 'unsafe-eval' 'unsafe-inline'; object-src 'self' https://* moz-extension: blob: filesystem:;");

@@ -1,7 +1,7 @@
-diff -up firefox-53.0.2/dom/plugins/base/nsJSNPRuntime.cpp.1337988 firefox-53.0.2/dom/plugins/base/nsJSNPRuntime.cpp
---- firefox-53.0.2/dom/plugins/base/nsJSNPRuntime.cpp.1337988	2017-04-11 06:15:22.000000000 +0200
-+++ firefox-53.0.2/dom/plugins/base/nsJSNPRuntime.cpp	2017-05-17 13:11:24.628137703 +0200
-@@ -1746,7 +1746,7 @@ NPObjWrapper_ObjectMoved(JSObject *obj,
+diff -up firefox-54.0/dom/plugins/base/nsJSNPRuntime.cpp.1337988 firefox-54.0/dom/plugins/base/nsJSNPRuntime.cpp
+--- firefox-54.0/dom/plugins/base/nsJSNPRuntime.cpp.1337988	2017-06-05 22:45:19.000000000 +0200
++++ firefox-54.0/dom/plugins/base/nsJSNPRuntime.cpp	2017-06-13 09:36:36.298383396 +0200
+@@ -1758,7 +1758,7 @@ NPObjWrapper_ObjectMoved(JSObject *obj,
    auto entry =
      static_cast<NPObjWrapperHashEntry*>(sNPObjWrappers->Search(npobj));
    MOZ_ASSERT(entry && entry->mJSObj);
@@ -10,9 +10,9 @@ diff -up firefox-53.0.2/dom/plugins/base/nsJSNPRuntime.cpp.1337988 firefox-53.0.
    entry->mJSObj = obj;
  }
  
-diff -up firefox-53.0.2/js/ipc/JavaScriptShared.cpp.1337988 firefox-53.0.2/js/ipc/JavaScriptShared.cpp
---- firefox-53.0.2/js/ipc/JavaScriptShared.cpp.1337988	2017-04-11 06:15:17.000000000 +0200
-+++ firefox-53.0.2/js/ipc/JavaScriptShared.cpp	2017-05-17 13:11:24.628137703 +0200
+diff -up firefox-54.0/js/ipc/JavaScriptShared.cpp.1337988 firefox-54.0/js/ipc/JavaScriptShared.cpp
+--- firefox-54.0/js/ipc/JavaScriptShared.cpp.1337988	2017-06-05 22:45:20.000000000 +0200
++++ firefox-54.0/js/ipc/JavaScriptShared.cpp	2017-06-13 09:36:36.298383396 +0200
 @@ -101,7 +101,7 @@ IdToObjectMap::has(const ObjectId& id, c
      auto p = table_.lookup(id);
      if (!p)
@@ -22,10 +22,10 @@ diff -up firefox-53.0.2/js/ipc/JavaScriptShared.cpp.1337988 firefox-53.0.2/js/ip
  }
  #endif
  
-diff -up firefox-53.0.2/js/public/RootingAPI.h.1337988 firefox-53.0.2/js/public/RootingAPI.h
---- firefox-53.0.2/js/public/RootingAPI.h.1337988	2017-04-11 06:15:17.000000000 +0200
-+++ firefox-53.0.2/js/public/RootingAPI.h	2017-05-17 14:16:44.378827481 +0200
-@@ -150,6 +150,10 @@ template<typename T>
+diff -up firefox-54.0/js/public/RootingAPI.h.1337988 firefox-54.0/js/public/RootingAPI.h
+--- firefox-54.0/js/public/RootingAPI.h.1337988	2017-06-05 22:45:20.000000000 +0200
++++ firefox-54.0/js/public/RootingAPI.h	2017-06-13 09:39:07.215806935 +0200
+@@ -148,6 +148,10 @@ template<typename T>
  struct PersistentRootedMarker;
  } /* namespace gc */
  
@@ -36,7 +36,7 @@ diff -up firefox-53.0.2/js/public/RootingAPI.h.1337988 firefox-53.0.2/js/public/
  // Important: Return a reference so passing a Rooted<T>, etc. to
  // something that takes a |const T&| is not a GC hazard.
  #define DECLARE_POINTER_CONSTREF_OPS(T)                                                           \
-@@ -235,8 +239,6 @@ class Heap : public js::HeapBase<T, Heap
+@@ -233,8 +237,6 @@ class Heap : public js::HeapBase<T, Heap
      static_assert(js::IsHeapConstructibleType<T>::value,
                    "Type T must be a public GC pointer type");
    public:
@@ -45,7 +45,7 @@ diff -up firefox-53.0.2/js/public/RootingAPI.h.1337988 firefox-53.0.2/js/public/
      Heap() {
          static_assert(sizeof(T) == sizeof(Heap<T>),
                        "Heap<T> must be binary compatible with T.");
-@@ -371,8 +373,6 @@ template <typename T>
+@@ -381,8 +383,6 @@ template <typename T>
  class TenuredHeap : public js::HeapBase<T, TenuredHeap<T>>
  {
    public:
@@ -54,7 +54,7 @@ diff -up firefox-53.0.2/js/public/RootingAPI.h.1337988 firefox-53.0.2/js/public/
      TenuredHeap() : bits(0) {
          static_assert(sizeof(T) == sizeof(TenuredHeap<T>),
                        "TenuredHeap<T> must be binary compatible with T.");
-@@ -380,6 +380,9 @@ class TenuredHeap : public js::HeapBase<
+@@ -390,6 +390,9 @@ class TenuredHeap : public js::HeapBase<
      explicit TenuredHeap(T p) : bits(0) { setPtr(p); }
      explicit TenuredHeap(const TenuredHeap<T>& p) : bits(0) { setPtr(p.getPtr()); }
  
@@ -64,7 +64,7 @@ diff -up firefox-53.0.2/js/public/RootingAPI.h.1337988 firefox-53.0.2/js/public/
      void setPtr(T newPtr) {
          MOZ_ASSERT((reinterpret_cast<uintptr_t>(newPtr) & flagsMask) == 0);
          if (newPtr)
-@@ -456,8 +459,6 @@ class MOZ_NONHEAP_CLASS Handle : public
+@@ -466,8 +469,6 @@ class MOZ_NONHEAP_CLASS Handle : public
      friend class JS::MutableHandle<T>;
  
    public:
@@ -73,7 +73,7 @@ diff -up firefox-53.0.2/js/public/RootingAPI.h.1337988 firefox-53.0.2/js/public/
      /* Creates a handle from a handle of a type convertible to T. */
      template <typename S>
      MOZ_IMPLICIT Handle(Handle<S> handle,
-@@ -518,6 +519,7 @@ class MOZ_NONHEAP_CLASS Handle : public
+@@ -529,6 +530,7 @@ class MOZ_NONHEAP_CLASS Handle : public
      MOZ_IMPLICIT Handle(MutableHandle<S>& root,
                          typename mozilla::EnableIf<mozilla::IsConvertible<S, T>::value, int>::Type dummy = 0);
  
@@ -81,7 +81,7 @@ diff -up firefox-53.0.2/js/public/RootingAPI.h.1337988 firefox-53.0.2/js/public/
      DECLARE_POINTER_CONSTREF_OPS(T);
      DECLARE_NONPOINTER_ACCESSOR_METHODS(*ptr);
  
-@@ -544,8 +546,6 @@ template <typename T>
+@@ -555,8 +557,6 @@ template <typename T>
  class MOZ_STACK_CLASS MutableHandle : public js::MutableHandleBase<T, MutableHandle<T>>
  {
    public:
@@ -90,7 +90,7 @@ diff -up firefox-53.0.2/js/public/RootingAPI.h.1337988 firefox-53.0.2/js/public/
      inline MOZ_IMPLICIT MutableHandle(Rooted<T>* root);
      inline MOZ_IMPLICIT MutableHandle(PersistentRooted<T>* root);
  
-@@ -571,6 +571,7 @@ class MOZ_STACK_CLASS MutableHandle : pu
+@@ -582,6 +582,7 @@ class MOZ_STACK_CLASS MutableHandle : pu
          return h;
      }
  
@@ -98,7 +98,7 @@ diff -up firefox-53.0.2/js/public/RootingAPI.h.1337988 firefox-53.0.2/js/public/
      DECLARE_POINTER_CONSTREF_OPS(T);
      DECLARE_NONPOINTER_ACCESSOR_METHODS(*ptr);
      DECLARE_NONPOINTER_MUTABLE_ACCESSOR_METHODS(*ptr);
-@@ -775,8 +776,6 @@ class MOZ_RAII Rooted : public js::Roote
+@@ -780,8 +781,6 @@ class MOZ_RAII Rooted : public js::Roote
      }
  
    public:
@@ -107,7 +107,7 @@ diff -up firefox-53.0.2/js/public/RootingAPI.h.1337988 firefox-53.0.2/js/public/
      template <typename RootingContext>
      explicit Rooted(const RootingContext& cx)
        : ptr(GCPolicy<T>::initial())
-@@ -806,6 +805,7 @@ class MOZ_RAII Rooted : public js::Roote
+@@ -811,6 +810,7 @@ class MOZ_RAII Rooted : public js::Roote
          ptr = value;
      }
  
@@ -115,7 +115,7 @@ diff -up firefox-53.0.2/js/public/RootingAPI.h.1337988 firefox-53.0.2/js/public/
      DECLARE_POINTER_CONSTREF_OPS(T);
      DECLARE_POINTER_ASSIGN_OPS(Rooted, T);
      DECLARE_NONPOINTER_ACCESSOR_METHODS(ptr);
-@@ -882,14 +882,13 @@ template <typename T>
+@@ -887,14 +887,13 @@ template <typename T>
  class MOZ_RAII FakeRooted : public RootedBase<T, FakeRooted<T>>
  {
    public:
@@ -131,7 +131,7 @@ diff -up firefox-53.0.2/js/public/RootingAPI.h.1337988 firefox-53.0.2/js/public/
      DECLARE_POINTER_CONSTREF_OPS(T);
      DECLARE_POINTER_ASSIGN_OPS(FakeRooted, T);
      DECLARE_NONPOINTER_ACCESSOR_METHODS(ptr);
-@@ -910,8 +909,6 @@ template <typename T>
+@@ -915,8 +914,6 @@ template <typename T>
  class FakeMutableHandle : public js::MutableHandleBase<T, FakeMutableHandle<T>>
  {
    public:
@@ -140,16 +140,16 @@ diff -up firefox-53.0.2/js/public/RootingAPI.h.1337988 firefox-53.0.2/js/public/
      MOZ_IMPLICIT FakeMutableHandle(T* t) {
          ptr = t;
      }
-@@ -1102,8 +1099,6 @@ class PersistentRooted : public js::Root
-     js::RootLists& rootLists(js::ContextFriendFields* cx) = delete;
+@@ -1099,8 +1096,6 @@ class PersistentRooted : public js::Root
+     }
  
    public:
 -    using ElementType = T;
 -
      PersistentRooted() : ptr(GCPolicy<T>::initial()) {}
  
-     template <typename RootingContext>
-@@ -1157,6 +1152,7 @@ class PersistentRooted : public js::Root
+     explicit PersistentRooted(RootingContext* cx)
+@@ -1165,6 +1160,7 @@ class PersistentRooted : public js::Root
          }
      }
  
@@ -157,7 +157,7 @@ diff -up firefox-53.0.2/js/public/RootingAPI.h.1337988 firefox-53.0.2/js/public/
      DECLARE_POINTER_CONSTREF_OPS(T);
      DECLARE_POINTER_ASSIGN_OPS(PersistentRooted, T);
      DECLARE_NONPOINTER_ACCESSOR_METHODS(ptr);
-@@ -1193,8 +1189,6 @@ class JS_PUBLIC_API(ObjectPtr)
+@@ -1201,8 +1197,6 @@ class JS_PUBLIC_API(ObjectPtr)
      Heap<JSObject*> value;
  
    public:
@@ -166,7 +166,7 @@ diff -up firefox-53.0.2/js/public/RootingAPI.h.1337988 firefox-53.0.2/js/public/
      ObjectPtr() : value(nullptr) {}
  
      explicit ObjectPtr(JSObject* obj) : value(obj) {}
-@@ -1297,177 +1291,6 @@ Swap(JS::TenuredHeap<T>& aX, JS::Tenured
+@@ -1305,177 +1299,6 @@ Swap(JS::TenuredHeap<T>& aX, JS::Tenured
  
  } /* namespace mozilla */
  
@@ -344,10 +344,10 @@ diff -up firefox-53.0.2/js/public/RootingAPI.h.1337988 firefox-53.0.2/js/public/
  #undef DELETE_ASSIGNMENT_OPS
  
  #endif  /* js_RootingAPI_h */
-diff -up firefox-53.0.2/js/src/gc/Barrier.h.1337988 firefox-53.0.2/js/src/gc/Barrier.h
---- firefox-53.0.2/js/src/gc/Barrier.h.1337988	2017-04-11 06:15:17.000000000 +0200
-+++ firefox-53.0.2/js/src/gc/Barrier.h	2017-05-17 13:11:24.629137700 +0200
-@@ -349,8 +349,8 @@ class WriteBarrieredBase : public Barrie
+diff -up firefox-54.0/js/src/gc/Barrier.h.1337988 firefox-54.0/js/src/gc/Barrier.h
+--- firefox-54.0/js/src/gc/Barrier.h.1337988	2017-06-05 22:45:21.000000000 +0200
++++ firefox-54.0/js/src/gc/Barrier.h	2017-06-13 09:36:36.299383392 +0200
+@@ -350,8 +350,8 @@ class WriteBarrieredBase : public Barrie
      explicit WriteBarrieredBase(const T& v) : BarrieredBase<T>(v) {}
  
    public:
@@ -357,7 +357,7 @@ diff -up firefox-53.0.2/js/src/gc/Barrier.h.1337988 firefox-53.0.2/js/src/gc/Bar
      DECLARE_POINTER_CONSTREF_OPS(T);
  
      // Use this if the automatic coercion to T isn't working.
-@@ -601,13 +601,14 @@ class ReadBarriered : public ReadBarrier
+@@ -602,13 +602,14 @@ class ReadBarriered : public ReadBarrier
          return *this;
      }
  
@@ -376,7 +376,7 @@ diff -up firefox-53.0.2/js/src/gc/Barrier.h.1337988 firefox-53.0.2/js/src/gc/Bar
          return this->value;
      }
  
-@@ -615,9 +616,9 @@ class ReadBarriered : public ReadBarrier
+@@ -616,9 +617,9 @@ class ReadBarriered : public ReadBarrier
          return bool(this->value);
      }
  
@@ -388,7 +388,7 @@ diff -up firefox-53.0.2/js/src/gc/Barrier.h.1337988 firefox-53.0.2/js/src/gc/Bar
  
      T* unsafeGet() { return &this->value; }
      T const* unsafeGet() const { return &this->value; }
-@@ -944,35 +945,6 @@ typedef ReadBarriered<WasmTableObject*>
+@@ -945,35 +946,6 @@ typedef ReadBarriered<WasmTableObject*>
  
  typedef ReadBarriered<Value> ReadBarrieredValue;
  
@@ -424,9 +424,9 @@ diff -up firefox-53.0.2/js/src/gc/Barrier.h.1337988 firefox-53.0.2/js/src/gc/Bar
  } /* namespace js */
  
  #endif /* gc_Barrier_h */
-diff -up firefox-53.0.2/js/src/jsapi-tests/testGCHeapPostBarriers.cpp.1337988 firefox-53.0.2/js/src/jsapi-tests/testGCHeapPostBarriers.cpp
---- firefox-53.0.2/js/src/jsapi-tests/testGCHeapPostBarriers.cpp.1337988	2017-04-11 06:15:18.000000000 +0200
-+++ firefox-53.0.2/js/src/jsapi-tests/testGCHeapPostBarriers.cpp	2017-05-17 13:11:24.629137700 +0200
+diff -up firefox-54.0/js/src/jsapi-tests/testGCHeapPostBarriers.cpp.1337988 firefox-54.0/js/src/jsapi-tests/testGCHeapPostBarriers.cpp
+--- firefox-54.0/js/src/jsapi-tests/testGCHeapPostBarriers.cpp.1337988	2017-06-05 22:45:21.000000000 +0200
++++ firefox-54.0/js/src/jsapi-tests/testGCHeapPostBarriers.cpp	2017-06-13 09:39:56.862617300 +0200
 @@ -5,7 +5,6 @@
   * License, v. 2.0. If a copy of the MPL was not distributed with this
   * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
@@ -435,10 +435,11 @@ diff -up firefox-53.0.2/js/src/jsapi-tests/testGCHeapPostBarriers.cpp.1337988 fi
  #include "mozilla/UniquePtr.h"
  
  #include "js/RootingAPI.h"
-@@ -152,111 +151,3 @@ TestHeapPostBarrierInitFailure()
+@@ -179,112 +178,3 @@ TestHeapPostBarrierInitFailure()
+     return true;
  }
  
- END_TEST(testGCHeapPostBarriers)
+-END_TEST(testGCHeapPostBarriers)
 -
 -BEGIN_TEST(testUnbarrieredEquality)
 -{
@@ -446,7 +447,7 @@ diff -up firefox-53.0.2/js/src/jsapi-tests/testGCHeapPostBarriers.cpp.1337988 fi
 -    // in ObjectPtr without awkward conversations about nursery allocatability.
 -    JS::RootedObject robj(cx, JS_NewArrayBuffer(cx, 20));
 -    JS::RootedObject robj2(cx, JS_NewArrayBuffer(cx, 30));
--    cx->gc.evictNursery(); // Need tenured objects
+-    cx->runtime()->gc.evictNursery(); // Need tenured objects
 -
 -    // Need some bare pointers to compare against.
 -    JSObject* obj = robj;
@@ -547,9 +548,9 @@ diff -up firefox-53.0.2/js/src/jsapi-tests/testGCHeapPostBarriers.cpp.1337988 fi
 -}
 -
 -END_TEST(testUnbarrieredEquality)
-diff -up firefox-53.0.2/js/src/vm/SharedMem.h.1337988 firefox-53.0.2/js/src/vm/SharedMem.h
---- firefox-53.0.2/js/src/vm/SharedMem.h.1337988	2017-04-11 06:15:18.000000000 +0200
-+++ firefox-53.0.2/js/src/vm/SharedMem.h	2017-05-17 13:11:24.629137700 +0200
+diff -up firefox-54.0/js/src/vm/SharedMem.h.1337988 firefox-54.0/js/src/vm/SharedMem.h
+--- firefox-54.0/js/src/vm/SharedMem.h.1337988	2017-04-11 06:15:18.000000000 +0200
++++ firefox-54.0/js/src/vm/SharedMem.h	2017-06-13 09:36:36.299383392 +0200
 @@ -12,8 +12,8 @@
  template<typename T>
  class SharedMem
@@ -561,9 +562,9 @@ diff -up firefox-53.0.2/js/src/vm/SharedMem.h.1337988 firefox-53.0.2/js/src/vm/S
  
      enum Sharedness {
          IsUnshared,
-diff -up firefox-53.0.2/js/xpconnect/src/XPCInlines.h.1337988 firefox-53.0.2/js/xpconnect/src/XPCInlines.h
---- firefox-53.0.2/js/xpconnect/src/XPCInlines.h.1337988	2017-04-11 06:15:18.000000000 +0200
-+++ firefox-53.0.2/js/xpconnect/src/XPCInlines.h	2017-05-17 13:11:24.629137700 +0200
+diff -up firefox-54.0/js/xpconnect/src/XPCInlines.h.1337988 firefox-54.0/js/xpconnect/src/XPCInlines.h
+--- firefox-54.0/js/xpconnect/src/XPCInlines.h.1337988	2017-04-11 06:15:18.000000000 +0200
++++ firefox-54.0/js/xpconnect/src/XPCInlines.h	2017-06-13 09:36:36.299383392 +0200
 @@ -471,7 +471,7 @@ inline
  void XPCWrappedNativeTearOff::JSObjectMoved(JSObject* obj, const JSObject* old)
  {
@@ -573,9 +574,9 @@ diff -up firefox-53.0.2/js/xpconnect/src/XPCInlines.h.1337988 firefox-53.0.2/js/
      mJSObject = obj;
  }
  
-diff -up firefox-53.0.2/js/xpconnect/src/XPCWrappedNative.cpp.1337988 firefox-53.0.2/js/xpconnect/src/XPCWrappedNative.cpp
---- firefox-53.0.2/js/xpconnect/src/XPCWrappedNative.cpp.1337988	2017-04-11 06:15:18.000000000 +0200
-+++ firefox-53.0.2/js/xpconnect/src/XPCWrappedNative.cpp	2017-05-17 13:11:24.629137700 +0200
+diff -up firefox-54.0/js/xpconnect/src/XPCWrappedNative.cpp.1337988 firefox-54.0/js/xpconnect/src/XPCWrappedNative.cpp
+--- firefox-54.0/js/xpconnect/src/XPCWrappedNative.cpp.1337988	2017-06-05 22:45:19.000000000 +0200
++++ firefox-54.0/js/xpconnect/src/XPCWrappedNative.cpp	2017-06-13 09:36:36.300383388 +0200
 @@ -888,7 +888,7 @@ void
  XPCWrappedNative::FlatJSObjectMoved(JSObject* obj, const JSObject* old)
  {
@@ -585,9 +586,9 @@ diff -up firefox-53.0.2/js/xpconnect/src/XPCWrappedNative.cpp.1337988 firefox-53
  
      nsWrapperCache* cache = nullptr;
      CallQueryInterface(mIdentity, &cache);
-diff -up firefox-53.0.2/js/xpconnect/src/XPCWrappedNativeProto.cpp.1337988 firefox-53.0.2/js/xpconnect/src/XPCWrappedNativeProto.cpp
---- firefox-53.0.2/js/xpconnect/src/XPCWrappedNativeProto.cpp.1337988	2017-04-11 06:15:18.000000000 +0200
-+++ firefox-53.0.2/js/xpconnect/src/XPCWrappedNativeProto.cpp	2017-05-17 13:11:24.629137700 +0200
+diff -up firefox-54.0/js/xpconnect/src/XPCWrappedNativeProto.cpp.1337988 firefox-54.0/js/xpconnect/src/XPCWrappedNativeProto.cpp
+--- firefox-54.0/js/xpconnect/src/XPCWrappedNativeProto.cpp.1337988	2017-06-05 22:45:19.000000000 +0200
++++ firefox-54.0/js/xpconnect/src/XPCWrappedNativeProto.cpp	2017-06-13 09:36:36.300383388 +0200
 @@ -101,7 +101,7 @@ XPCWrappedNativeProto::CallPostCreatePro
  void
  XPCWrappedNativeProto::JSProtoObjectFinalized(js::FreeOp* fop, JSObject* obj)
