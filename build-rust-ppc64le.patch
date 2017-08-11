@@ -1,8 +1,7 @@
-diff -up firefox-54.0/build/mozconfig.rust firefox-54.0/build/mozconfig
-diff -up firefox-54.0/build/moz.configure/rust.configure.rust firefox-54.0/build/moz.configure/rust.configure
---- firefox-54.0/build/moz.configure/rust.configure.rust	2017-06-09 22:29:36.273878229 +0200
-+++ firefox-54.0/build/moz.configure/rust.configure	2017-06-09 23:00:49.330699698 +0200
-@@ -151,6 +150,9 @@ def rust_triple_alias(host_or_target):
+diff -up firefox-55.0/build/moz.configure/rust.configure.rust-ppc64le firefox-55.0/build/moz.configure/rust.configure
+--- firefox-55.0/build/moz.configure/rust.configure.rust-ppc64le	2017-07-31 18:20:49.000000000 +0200
++++ firefox-55.0/build/moz.configure/rust.configure	2017-08-02 10:19:03.254220003 +0200
+@@ -151,6 +151,9 @@ def rust_triple_alias(host_or_target):
              ('sparc64', 'Linux'): 'sparc64-unknown-linux-gnu',
              ('x86', 'Linux'): 'i686-unknown-linux-gnu',
              ('x86_64', 'Linux'): 'x86_64-unknown-linux-gnu',
@@ -12,8 +11,8 @@ diff -up firefox-54.0/build/moz.configure/rust.configure.rust firefox-54.0/build
              # OS X
              ('x86', 'OSX'): 'i686-apple-darwin',
              ('x86_64', 'OSX'): 'x86_64-apple-darwin',
-@@ -170,8 +172,10 @@ def rust_triple_alias(host_or_target):
-             ('x86_64', 'WINNT'): 'x86_64-pc-windows-msvc',
+@@ -174,8 +177,10 @@ def rust_triple_alias(host_or_target):
+             ('sparc64', 'SunOS'): 'sparcv9-sun-solaris',
          }.get((host_or_target.cpu, os_or_kernel), None)
  
 +        if (rustc_target == 'powerpc64-unknown-linux-gnu' and host_or_target.endianness == 'little'):
@@ -24,7 +23,3 @@ diff -up firefox-54.0/build/moz.configure/rust.configure.rust firefox-54.0/build
  
          # Check to see whether our rustc has a reasonably functional stdlib
          # for our chosen target.
-diff -up firefox-54.0/third_party/rust/aho-corasick/ctags.rust firefox-54.0/third_party/rust/aho-corasick/ctags
-diff -up firefox-54.0/third_party/rust/memchr/ctags.rust firefox-54.0/third_party/rust/memchr/ctags
-diff -up firefox-54.0/third_party/rust/utf8-ranges/ctags.rust firefox-54.0/third_party/rust/utf8-ranges/ctags
-diff -up firefox-54.0/third_party/rust/walkdir/ctags.rust firefox-54.0/third_party/rust/walkdir/ctags

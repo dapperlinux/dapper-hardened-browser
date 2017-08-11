@@ -93,14 +93,14 @@
 
 Summary:        Dapper Linux Hardened Browser
 Name:           dapper-hardened-browser
-Version:        54.0
-Release:        3%{?pre_tag}%{?dist}
+Version:        55.0
+Release:        5%{?pre_tag}%{?dist}
 URL:            https://github.com/dapperlinux/dapper-hardened/browser
 License:        MPLv1.1 or GPLv2+ or LGPLv2+
 Group:          Applications/Internet
 Source0:        https://archive.mozilla.org/pub/firefox/releases/%{version}%{?pre_version}/source/firefox-%{version}%{?pre_version}.source.tar.xz
 %if %{build_langpacks}
-#Source1: firefox-langpacks-%{version}%{?pre_version}-20170608.tar.xz
+#Source1: firefox-langpacks-%{version}%{?pre_version}-20170807.tar.xz
 %endif
 Source10:       firefox-mozconfig
 Source12:       browser-redhat-default-prefs.js
@@ -134,6 +134,9 @@ Patch29:        build-big-endian.patch
 Patch30:        fedora-build.patch
 Patch31:        build-ppc64-s390x-curl.patch
 Patch32:        build-rust-ppc64le.patch
+Patch33:        build-ppc-s390-dom.patch
+Patch34:        build-cubeb-pulse-arm.patch
+Patch35:        build-ppc-jit.patch
 
 # Fedora specific patches
 # Unable to install addons from https pages
@@ -153,8 +156,6 @@ Patch304:        mozilla-1253216.patch
 Patch402:        mozilla-1196777.patch
 Patch406:        mozilla-256180.patch
 Patch407:        mozilla-1348576.patch
-Patch408:        mozilla-1158076-1.patch
-Patch409:        mozilla-1158076-2.patch
 Patch410:        mozilla-1321521.patch
 Patch411:        mozilla-1321521-2.patch
 Patch412:        mozilla-1337988.patch
@@ -314,13 +315,18 @@ cd %{tarballdir}
 %patch30 -p1 -b .fedora-build
 %patch31 -p1 -b .ppc64-s390x-curl
 %patch32 -p1 -b .rust-ppc64le
+%patch33 -p1 -b .ppc-s390-dom
+%patch34 -p1 -b .cubeb-pulse-arm
+%ifarch ppc ppc64 ppc64le
+%patch35 -p1 -b .ppc-jit
+%endif
 
 %patch3  -p1 -b .arm
 
 # For branding specific patches.
 
 # Fedora patches
-%patch204 -p2 -b .966424
+#%patch204 -p2 -b .966424
 %patch215 -p1 -b .addons
 %patch219 -p2 -b .rhbz-1173156
 %patch221 -p2 -b .fedora-ua
@@ -334,8 +340,6 @@ cd %{tarballdir}
 %patch304 -p1 -b .1253216
 %patch402 -p1 -b .1196777
 %patch406 -p1 -b .256180
-%patch408 -p1 -b .1158076-1
-%patch409 -p1 -b .1158076-2
 
 %ifarch %{arm}
 %if 0%{?fedora} < 26
@@ -640,7 +644,7 @@ SentUpstream: 2014-09-22
     </p>
     <!-- FIXME: Needs another couple of paragraphs -->
   </description>
-  <url type="homepage">http://www.mozilla.org/en-US/</url>
+  <url type="homepage">http://www.mozilla.org/</url>
   <screenshots>
     <screenshot type="default">https://raw.githubusercontent.com/hughsie/fedora-appstream/master/screenshots-extra/firefox/a.png</screenshot>
     <screenshot>https://raw.githubusercontent.com/hughsie/fedora-appstream/master/screenshots-extra/firefox/b.png</screenshot>
@@ -821,10 +825,7 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 %{mozappdir}/browser/chrome
 %{mozappdir}/browser/chrome.manifest
 %{mozappdir}/browser/defaults/preferences/browser-redhat-default-prefs.js
-%{mozappdir}/browser/features/e10srollout@mozilla.org.xpi
-%{mozappdir}/browser/features/firefox@getpocket.com.xpi
-%{mozappdir}/browser/features/webcompat@mozilla.org.xpi
-%{mozappdir}/browser/features/screenshots@mozilla.org.xpi
+%{mozappdir}/browser/features/*.xpi
 %{mozappdir}/distribution/distribution.ini
 # That's Windows only
 %ghost %{mozappdir}/browser/features/aushelper@mozilla.org.xpi
@@ -880,8 +881,20 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 #---------------------------------------------------------------------
 
 %changelog
-* Tue Jun 20 2017 Matthew Ruffell <msr50@uclive.ac.nz> - 54.0-3
+* Thu Aug 10 2017 Matthew Ruffell <msr50@uclive.ac.nz> - 55.0-5
 - Dapper Hardened Browser Rebranded and Built
+
+* Tue Aug 8 2017 Martin Stransky <stransky@redhat.com> - 55.0-4
+- Rebuild
+
+* Mon Aug 7 2017 Martin Stransky <stransky@redhat.com> - 55.0-2
+- Updated to 55.0 (B3)
+
+* Wed Aug 2 2017 Martin Stransky <stransky@redhat.com> - 55.0-1
+- Updated to 55.0 (B1)
+
+* Tue Jul 25 2017 Jan Horak <jhorak@redhat.com> - 54.0.1-1
+- Update to 54.0.1
 
 * Tue Jun 13 2017 Jan Horak <jhorak@redhat.com> - 54.0-2
 - Update to 54.0 (B3)

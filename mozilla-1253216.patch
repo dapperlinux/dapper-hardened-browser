@@ -1,9 +1,9 @@
-diff -up firefox-53.0/js/src/jit/AtomicOperations.h.1253216 firefox-53.0/js/src/jit/AtomicOperations.h
---- firefox-53.0/js/src/jit/AtomicOperations.h.1253216	2017-04-18 10:07:25.939282630 +0200
-+++ firefox-53.0/js/src/jit/AtomicOperations.h	2017-04-18 10:15:50.965436343 +0200
+diff -up firefox-55.0/js/src/jit/AtomicOperations.h.1253216 firefox-55.0/js/src/jit/AtomicOperations.h
+--- firefox-55.0/js/src/jit/AtomicOperations.h.1253216	2017-08-02 11:00:24.115991657 +0200
++++ firefox-55.0/js/src/jit/AtomicOperations.h	2017-08-02 11:01:17.373817096 +0200
 @@ -348,7 +348,7 @@ AtomicOperations::isLockfree(int32_t siz
- #elif defined(__sh__)
- #  include "jit/none/AtomicOperations-ppc.h"
+ # elif defined(__sh__)
+ #  include "jit/none/AtomicOperations-feeling-lucky.h"
  # else
 -#  include "jit/none/AtomicOperations-none.h" // These MOZ_CRASH() always
 +#  include "jit/none/AtomicOperations-ppc.h"
