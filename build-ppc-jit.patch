@@ -24,3 +24,28 @@ diff -up firefox-55.0/js/src/jit/ExecutableAllocator.h.old firefox-55.0/js/src/j
  #endif
  
    private:
+diff -up firefox-55.0/js/src/wasm/WasmBuiltins.cpp.old firefox-55.0/js/src/wasm/WasmBuiltins.cpp
+--- firefox-55.0/js/src/wasm/WasmBuiltins.cpp.old	2017-08-09 12:50:46.877450765 +0200
++++ firefox-55.0/js/src/wasm/WasmBuiltins.cpp	2017-08-09 12:50:59.725406974 +0200
+@@ -881,7 +881,6 @@ wasm::EnsureBuiltinThunksInitialized()
+     MOZ_ASSERT(!masm.numSymbolicAccesses());
+ #endif
+ 
+-    ExecutableAllocator::cacheFlush(thunks->codeBase, thunks->codeSize);
+     if (!ExecutableAllocator::makeExecutable(thunks->codeBase, thunks->codeSize))
+         return false;
+ 
+diff -up firefox-55.0/js/src/wasm/WasmCode.cpp.old firefox-55.0/js/src/wasm/WasmCode.cpp
+--- firefox-55.0/js/src/wasm/WasmCode.cpp.old	2017-08-09 12:50:37.205483731 +0200
++++ firefox-55.0/js/src/wasm/WasmCode.cpp	2017-08-09 12:51:10.365370708 +0200
+@@ -287,8 +287,6 @@ CodeSegment::initialize(Tier tier,
+     if (!StaticallyLink(*this, linkData))
+         return false;
+ 
+-    ExecutableAllocator::cacheFlush(bytes_.get(), RoundupCodeLength(codeLength));
+-
+     // Reprotect the whole region to avoid having separate RW and RX mappings.
+     if (!ExecutableAllocator::makeExecutable(bytes_.get(), RoundupCodeLength(codeLength)))
+         return false;
+diff -up firefox-55.0/media/libyuv/libyuv/tools_libyuv/autoroller/unittests/testdata/DEPS.chromium.old firefox-55.0/media/libyuv/libyuv/tools_libyuv/autoroller/unittests/testdata/DEPS.chromium
+diff -up firefox-55.0/media/webrtc/trunk/Makefile.old firefox-55.0/media/webrtc/trunk/Makefile
