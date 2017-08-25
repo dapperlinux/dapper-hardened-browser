@@ -98,7 +98,7 @@
 Summary:        Dapper Linux Hardened Browser
 Name:           dapper-hardened-browser
 Version:        55.0.2
-Release:        2%{?pre_tag}%{?dist}
+Release:        4%{?pre_tag}%{?dist}
 URL:            https://github.com/dapperlinux/dapper-hardened/browser
 License:        MPLv1.1 or GPLv2+ or LGPLv2+
 Group:          Applications/Internet
@@ -886,8 +886,14 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 #---------------------------------------------------------------------
 
 %changelog
-* Tue Aug 22 2017 Matthew Ruffell <msr50@uclive.ac.nz> - 55.0.2-2
+* Fri Aug 25 2017 Matthew Ruffell <msr50@uclive.ac.nz> - 55.0.2-4
 - Dapper Hardened Browser Rebranded and Built
+
+* Thu Aug 24 2017 Martin Stransky <stransky@redhat.com> - 55.0.2-3
+- Enable to build with nspr-4.16.
+
+* Wed Aug 23 2017 Martin Stransky <stransky@redhat.com> - 55.0.2-2
+- Rebuilt to remove wrong dependency to nspr-4.16. 
 
 * Fri Aug 18 2017 Martin Stransky <stransky@redhat.com> - 55.0.2-1
 - Updated to 55.0.2
