@@ -13,7 +13,7 @@
 
 # Use system sqlite?
 %if 0%{?fedora} > 27
-%define system_sqlite     1
+%define system_sqlite     0
 %else
 %define system_sqlite     0
 %endif
@@ -27,7 +27,7 @@
 
 # Use system libicu?
 %if 0%{?fedora} > 27
-%define system_libicu     1
+%define system_libicu     0
 %else
 %define system_libicu     0
 %endif
@@ -67,17 +67,18 @@
 %global nspr_version 4.10.10
 # NSS/NSPR quite often ends in build override, so as requirement the version
 # we're building against could bring us some broken dependencies from time to time.
-%global nspr_build_version %{nspr_version}
 #%global nspr_build_version %(pkg-config --silence-errors --modversion nspr 2>/dev/null || echo 65536)
+%global nspr_build_version %{nspr_version}
 %global nss_version 3.29.3
-%global nss_build_version %{nss_version}
 #%global nss_build_version %(pkg-config --silence-errors --modversion nss 2>/dev/null || echo 65536) echo 65536)
+%global nss_build_version %{nss_version}
 %endif
 
 %if %{?system_sqlite}
-%global sqlite_version 3.8.4.2
+%global sqlite_version 3.20.1
 # The actual sqlite version (see #480989):
-%global sqlite_build_version %(pkg-config --silence-errors --modversion sqlite3 2>/dev/null || echo 65536)
+#%global sqlite_build_version %(pkg-config --silence-errors --modversion sqlite3 2>/dev/null || echo 65536)
+%global sqlite_build_version %{sqlite_version}
 %endif
 
 %global mozappdir     %{_libdir}/%{name}
@@ -91,20 +92,22 @@
 %define enable_mozilla_crashreporter       0
 %if !%{debug_build}
 %ifarch %{ix86} x86_64
+%if 0%{?fedora} < 27
 %define enable_mozilla_crashreporter       0
+%endif
 %endif
 %endif
 
 Summary:        Dapper Linux Hardened Browser
 Name:           dapper-hardened-browser
-Version:        55.0.2
-Release:        4%{?pre_tag}%{?dist}
+Version:        55.0.3
+Release:        2%{?pre_tag}%{?dist}
 URL:            https://github.com/dapperlinux/dapper-hardened/browser
 License:        MPLv1.1 or GPLv2+ or LGPLv2+
 Group:          Applications/Internet
 Source0:        https://archive.mozilla.org/pub/firefox/releases/%{version}%{?pre_version}/source/firefox-%{version}%{?pre_version}.source.tar.xz
 %if %{build_langpacks}
-#Source1: firefox-langpacks-%{version}%{?pre_version}-20170818.tar.xz
+#Source1: firefox-langpacks-%{version}%{?pre_version}-20170901.tar.xz
 %endif
 Source10:       firefox-mozconfig
 Source12:       browser-redhat-default-prefs.js
@@ -114,13 +117,14 @@ Source23:       dapper-hardened-browser.1
 Source24:       mozilla-api-key
 Source25:       firefox-symbolic.svg
 Source26:       distribution.ini
+Source27:       google-api-key
 
 # Dapper Linux Additions
-Source27:	mozilla.cfg
 Source28:	distribution.tar.xz
 Source29:	stylish.sqlite
 Source30:	unofficial.tar.xz
 Source31:	autoconfig.js
+Source32:	mozilla.cfg
 
 # Build patches
 Patch0:         firefox-install-dir.patch
@@ -141,6 +145,10 @@ Patch32:        build-rust-ppc64le.patch
 Patch33:        build-ppc-s390-dom.patch
 Patch34:        build-cubeb-pulse-arm.patch
 Patch35:        build-ppc-jit.patch
+Patch36:        build-missing-xlocale-h.patch
+# Always feel lucky for unsupported platforms:
+# https://bugzilla.mozilla.org/show_bug.cgi?id=1347128
+Patch37:        build-jit-atomic-always-lucky.patch
 
 # Fedora specific patches
 # Unable to install addons from https pages
@@ -156,7 +164,6 @@ Patch229:        firefox-nss-version.patch
 
 
 # Upstream patches
-Patch304:        mozilla-1253216.patch
 Patch402:        mozilla-1196777.patch
 Patch406:        mozilla-256180.patch
 Patch407:        mozilla-1348576.patch
@@ -212,6 +219,7 @@ BuildRequires:  pkgconfig(gconf-2.0)
 BuildRequires:  yasm
 
 Requires:       mozilla-filesystem
+Requires:       p11-kit-trust
 %if %{?system_nss}
 Requires:       nspr >= %{nspr_build_version}
 Requires:       nss >= %{nss_build_version}
@@ -324,7 +332,9 @@ cd %{tarballdir}
 %patch34 -p1 -b .cubeb-pulse-arm
 %ifarch ppc ppc64 ppc64le
 %patch35 -p1 -b .ppc-jit
+%patch36 -p2 -b .xlocale
 %endif
+%patch37 -p1 -b .jit-atomic-lucky
 
 %patch3  -p1 -b .arm
 
@@ -342,7 +352,6 @@ cd %{tarballdir}
 %patch226 -p1 -b .1354671
 %endif
 
-%patch304 -p1 -b .1253216
 %patch402 -p1 -b .1196777
 %patch406 -p1 -b .256180
 
@@ -369,6 +378,7 @@ cd %{tarballdir}
 echo "ac_add_options --enable-official-branding" >> .mozconfig
 %endif
 %{__cp} %{SOURCE24} mozilla-api-key
+%{__cp} %{SOURCE27} google-api-key
 
 %if %{?system_nss}
 echo "ac_add_options --with-system-nspr" >> .mozconfig
@@ -468,6 +478,11 @@ echo "ac_add_options --with-system-icu" >> .mozconfig
 %else
 echo "ac_add_options --without-system-icu" >> .mozconfig
 %endif
+
+%ifarch s390 s390x
+echo "ac_add_options --disable-ion" >> .mozconfig
+%endif
+
 
 #---------------------------------------------------------------------
 
@@ -759,7 +774,7 @@ rm -f ${RPM_BUILD_ROOT}%{mozappdirdev}/sdk/lib/libxul.so
 # Add Dapper Linux additions
 %{__mkdir_p} $RPM_BUILD_ROOT%{mozappdir}/defaults/profile
 %{__cp} %{SOURCE31} $RPM_BUILD_ROOT%{mozappdir}/defaults/pref/
-%{__cp} %{SOURCE27} $RPM_BUILD_ROOT%{mozappdir}
+%{__cp} %{SOURCE32} $RPM_BUILD_ROOT%{mozappdir}
 cp -r $RPM_BUILD_DIR/%{name}-%{version}/distribution $RPM_BUILD_ROOT%{mozappdir}
 chmod -R +755 $RPM_BUILD_ROOT%{mozappdir}/distribution
 %{__cp} %{SOURCE29} $RPM_BUILD_ROOT%{mozappdir}/defaults/profile/
@@ -881,13 +896,17 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 %{mozappdir}/libfreeblpriv3.chk
 %{mozappdir}/libnssdbm3.chk
 %{mozappdir}/libsoftokn3.chk
+%exclude %{mozappdir}/libnssckbi.so
 %endif
 
 #---------------------------------------------------------------------
 
 %changelog
-* Fri Aug 25 2017 Matthew Ruffell <msr50@uclive.ac.nz> - 55.0.2-4
+* Mon Sep  4 2017 Matthew Ruffell <msr50@uclive.ac.nz> - 55.0.3-2
 - Dapper Hardened Browser Rebranded and Built
+
+* Fri Sep  1 2017 Jan Horak <jhorak@redhat.com> - 55.0.3-1
+- Update to 55.0.5
 
 * Thu Aug 24 2017 Martin Stransky <stransky@redhat.com> - 55.0.2-3
 - Enable to build with nspr-4.16.
