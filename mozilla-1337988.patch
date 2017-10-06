@@ -1,7 +1,7 @@
-diff -up firefox-55.0/dom/plugins/base/nsJSNPRuntime.cpp.1337988 firefox-55.0/dom/plugins/base/nsJSNPRuntime.cpp
---- firefox-55.0/dom/plugins/base/nsJSNPRuntime.cpp.1337988	2017-07-31 18:20:53.000000000 +0200
-+++ firefox-55.0/dom/plugins/base/nsJSNPRuntime.cpp	2017-08-02 14:33:41.736715482 +0200
-@@ -1766,7 +1766,7 @@ NPObjWrapper_ObjectMoved(JSObject *obj,
+diff -up firefox-56.0/dom/plugins/base/nsJSNPRuntime.cpp.1337988 firefox-56.0/dom/plugins/base/nsJSNPRuntime.cpp
+--- firefox-56.0/dom/plugins/base/nsJSNPRuntime.cpp.1337988	2017-09-14 22:15:56.000000000 +0200
++++ firefox-56.0/dom/plugins/base/nsJSNPRuntime.cpp	2017-09-25 10:34:11.205611698 +0200
+@@ -1719,7 +1719,7 @@ NPObjWrapper_ObjectMoved(JSObject *obj,
    auto entry =
      static_cast<NPObjWrapperHashEntry*>(sNPObjWrappers->Search(npobj));
    MOZ_ASSERT(entry && entry->mJSObj);
@@ -10,9 +10,9 @@ diff -up firefox-55.0/dom/plugins/base/nsJSNPRuntime.cpp.1337988 firefox-55.0/do
    entry->mJSObj = obj;
  }
  
-diff -up firefox-55.0/js/ipc/JavaScriptShared.cpp.1337988 firefox-55.0/js/ipc/JavaScriptShared.cpp
---- firefox-55.0/js/ipc/JavaScriptShared.cpp.1337988	2017-07-31 18:20:47.000000000 +0200
-+++ firefox-55.0/js/ipc/JavaScriptShared.cpp	2017-08-02 14:33:41.736715482 +0200
+diff -up firefox-56.0/js/ipc/JavaScriptShared.cpp.1337988 firefox-56.0/js/ipc/JavaScriptShared.cpp
+--- firefox-56.0/js/ipc/JavaScriptShared.cpp.1337988	2017-07-31 18:20:47.000000000 +0200
++++ firefox-56.0/js/ipc/JavaScriptShared.cpp	2017-09-25 10:34:11.205611698 +0200
 @@ -101,7 +101,7 @@ IdToObjectMap::has(const ObjectId& id, c
      auto p = table_.lookup(id);
      if (!p)
@@ -22,9 +22,9 @@ diff -up firefox-55.0/js/ipc/JavaScriptShared.cpp.1337988 firefox-55.0/js/ipc/Ja
  }
  #endif
  
-diff -up firefox-55.0/js/public/RootingAPI.h.1337988 firefox-55.0/js/public/RootingAPI.h
---- firefox-55.0/js/public/RootingAPI.h.1337988	2017-07-31 18:20:47.000000000 +0200
-+++ firefox-55.0/js/public/RootingAPI.h	2017-08-02 15:20:44.873663128 +0200
+diff -up firefox-56.0/js/public/RootingAPI.h.1337988 firefox-56.0/js/public/RootingAPI.h
+--- firefox-56.0/js/public/RootingAPI.h.1337988	2017-07-31 18:20:47.000000000 +0200
++++ firefox-56.0/js/public/RootingAPI.h	2017-09-25 10:34:11.206611695 +0200
 @@ -148,6 +148,10 @@ template<typename T>
  struct PersistentRootedMarker;
  } /* namespace gc */
@@ -344,9 +344,9 @@ diff -up firefox-55.0/js/public/RootingAPI.h.1337988 firefox-55.0/js/public/Root
  #undef DELETE_ASSIGNMENT_OPS
  
  #endif  /* js_RootingAPI_h */
-diff -up firefox-55.0/js/src/gc/Barrier.h.1337988 firefox-55.0/js/src/gc/Barrier.h
---- firefox-55.0/js/src/gc/Barrier.h.1337988	2017-07-31 18:20:47.000000000 +0200
-+++ firefox-55.0/js/src/gc/Barrier.h	2017-08-02 14:33:41.737715470 +0200
+diff -up firefox-56.0/js/src/gc/Barrier.h.1337988 firefox-56.0/js/src/gc/Barrier.h
+--- firefox-56.0/js/src/gc/Barrier.h.1337988	2017-09-14 22:16:01.000000000 +0200
++++ firefox-56.0/js/src/gc/Barrier.h	2017-09-25 10:34:11.206611695 +0200
 @@ -353,8 +353,8 @@ class WriteBarrieredBase : public Barrie
      explicit WriteBarrieredBase(const T& v) : BarrieredBase<T>(v) {}
  
@@ -357,7 +357,7 @@ diff -up firefox-55.0/js/src/gc/Barrier.h.1337988 firefox-55.0/js/src/gc/Barrier
      DECLARE_POINTER_CONSTREF_OPS(T);
  
      // Use this if the automatic coercion to T isn't working.
-@@ -605,13 +605,14 @@ class ReadBarriered : public ReadBarrier
+@@ -612,13 +612,14 @@ class ReadBarriered : public ReadBarrier
          return *this;
      }
  
@@ -376,7 +376,7 @@ diff -up firefox-55.0/js/src/gc/Barrier.h.1337988 firefox-55.0/js/src/gc/Barrier
          return this->value;
      }
  
-@@ -619,9 +620,9 @@ class ReadBarriered : public ReadBarrier
+@@ -626,9 +627,9 @@ class ReadBarriered : public ReadBarrier
          return bool(this->value);
      }
  
@@ -388,7 +388,7 @@ diff -up firefox-55.0/js/src/gc/Barrier.h.1337988 firefox-55.0/js/src/gc/Barrier
  
      T* unsafeGet() { return &this->value; }
      T const* unsafeGet() const { return &this->value; }
-@@ -948,35 +949,6 @@ typedef ReadBarriered<WasmTableObject*>
+@@ -955,35 +956,6 @@ typedef ReadBarriered<WasmTableObject*>
  
  typedef ReadBarriered<Value> ReadBarrieredValue;
  
@@ -424,9 +424,9 @@ diff -up firefox-55.0/js/src/gc/Barrier.h.1337988 firefox-55.0/js/src/gc/Barrier
  } /* namespace js */
  
  #endif /* gc_Barrier_h */
-diff -up firefox-55.0/js/src/jsapi-tests/testGCHeapPostBarriers.cpp.1337988 firefox-55.0/js/src/jsapi-tests/testGCHeapPostBarriers.cpp
---- firefox-55.0/js/src/jsapi-tests/testGCHeapPostBarriers.cpp.1337988	2017-07-31 18:20:48.000000000 +0200
-+++ firefox-55.0/js/src/jsapi-tests/testGCHeapPostBarriers.cpp	2017-08-02 15:23:03.544362400 +0200
+diff -up firefox-56.0/js/src/jsapi-tests/testGCHeapPostBarriers.cpp.1337988 firefox-56.0/js/src/jsapi-tests/testGCHeapPostBarriers.cpp
+--- firefox-56.0/js/src/jsapi-tests/testGCHeapPostBarriers.cpp.1337988	2017-09-14 22:16:02.000000000 +0200
++++ firefox-56.0/js/src/jsapi-tests/testGCHeapPostBarriers.cpp	2017-09-25 10:34:11.206611695 +0200
 @@ -5,7 +5,6 @@
   * License, v. 2.0. If a copy of the MPL was not distributed with this
   * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
@@ -435,127 +435,9 @@ diff -up firefox-55.0/js/src/jsapi-tests/testGCHeapPostBarriers.cpp.1337988 fire
  #include "mozilla/UniquePtr.h"
  
  #include "js/RootingAPI.h"
-@@ -178,117 +177,3 @@ TestHeapPostBarrierInitFailure()
- 
-     return true;
- }
--
--END_TEST(testGCHeapPostBarriers)
--
--BEGIN_TEST(testUnbarrieredEquality)
--{
--#ifdef JS_GC_ZEAL
--    AutoLeaveZeal nozeal(cx);
--#endif /* JS_GC_ZEAL */
--
--    // Use ArrayBuffers because they have finalizers, which allows using them
--    // in ObjectPtr without awkward conversations about nursery allocatability.
--    JS::RootedObject robj(cx, JS_NewArrayBuffer(cx, 20));
--    JS::RootedObject robj2(cx, JS_NewArrayBuffer(cx, 30));
--    cx->runtime()->gc.evictNursery(); // Need tenured objects
--
--    // Need some bare pointers to compare against.
--    JSObject* obj = robj;
--    JSObject* obj2 = robj2;
--    const JSObject* constobj = robj;
--    const JSObject* constobj2 = robj2;
--
--    // Make them gray. We will make sure they stay gray. (For most reads, the
--    // barrier will unmark gray.)
--    using namespace js::gc;
--    TenuredCell* cell = &obj->asTenured();
--    TenuredCell* cell2 = &obj2->asTenured();
--    cell->markIfUnmarked(GRAY);
--    cell2->markIfUnmarked(GRAY);
--    MOZ_ASSERT(cell->isMarked(GRAY));
--    MOZ_ASSERT(cell2->isMarked(GRAY));
--
--    {
--        JS::Heap<JSObject*> heap(obj);
--        JS::Heap<JSObject*> heap2(obj2);
--        CHECK(TestWrapper(obj, obj2, heap, heap2));
--        CHECK(TestWrapper(constobj, constobj2, heap, heap2));
--    }
--
--    {
--        JS::TenuredHeap<JSObject*> heap(obj);
--        JS::TenuredHeap<JSObject*> heap2(obj2);
--        CHECK(TestWrapper(obj, obj2, heap, heap2));
--        CHECK(TestWrapper(constobj, constobj2, heap, heap2));
--    }
--
--    {
--        JS::ObjectPtr objptr(obj);
--        JS::ObjectPtr objptr2(obj2);
--        CHECK(TestWrapper(obj, obj2, objptr, objptr2));
--        CHECK(TestWrapper(constobj, constobj2, objptr, objptr2));
--        objptr.finalize(cx);
--        objptr2.finalize(cx);
--    }
--
--    // Sanity check that the barriers normally mark things black.
--    {
--        JS::Heap<JSObject*> heap(obj);
--        JS::Heap<JSObject*> heap2(obj2);
--        heap.get();
--        heap2.get();
--        CHECK(cell->isMarked(BLACK));
--        CHECK(cell2->isMarked(BLACK));
--    }
--
--    return true;
--}
--
--template <typename ObjectT, typename WrapperT>
--bool
--TestWrapper(ObjectT obj, ObjectT obj2, WrapperT& wrapper, WrapperT& wrapper2)
--{
--    using namespace js::gc;
--
--    const TenuredCell& cell = obj->asTenured();
--    const TenuredCell& cell2 = obj2->asTenured();
--
--    int x = 0;
--
--    CHECK(cell.isMarked(GRAY));
--    CHECK(cell2.isMarked(GRAY));
--    x += obj == obj2;
--    CHECK(cell.isMarked(GRAY));
--    CHECK(cell2.isMarked(GRAY));
--    x += obj == wrapper2;
--    CHECK(cell.isMarked(GRAY));
--    CHECK(cell2.isMarked(GRAY));
--    x += wrapper == obj2;
--    CHECK(cell.isMarked(GRAY));
--    CHECK(cell2.isMarked(GRAY));
--    x += wrapper == wrapper2;
--    CHECK(cell.isMarked(GRAY));
--    CHECK(cell2.isMarked(GRAY));
--
--    CHECK(x == 0);
--
--    x += obj != obj2;
--    CHECK(cell.isMarked(GRAY));
--    CHECK(cell2.isMarked(GRAY));
--    x += obj != wrapper2;
--    CHECK(cell.isMarked(GRAY));
--    CHECK(cell2.isMarked(GRAY));
--    x += wrapper != obj2;
--    CHECK(cell.isMarked(GRAY));
--    CHECK(cell2.isMarked(GRAY));
--    x += wrapper != wrapper2;
--    CHECK(cell.isMarked(GRAY));
--    CHECK(cell2.isMarked(GRAY));
--
--    CHECK(x == 4);
--
--    return true;
--}
--
--END_TEST(testUnbarrieredEquality)
-diff -up firefox-55.0/js/src/vm/SharedMem.h.1337988 firefox-55.0/js/src/vm/SharedMem.h
---- firefox-55.0/js/src/vm/SharedMem.h.1337988	2017-06-15 22:52:29.000000000 +0200
-+++ firefox-55.0/js/src/vm/SharedMem.h	2017-08-02 14:33:41.737715470 +0200
+diff -up firefox-56.0/js/src/vm/SharedMem.h.1337988 firefox-56.0/js/src/vm/SharedMem.h
+--- firefox-56.0/js/src/vm/SharedMem.h.1337988	2017-06-15 22:52:29.000000000 +0200
++++ firefox-56.0/js/src/vm/SharedMem.h	2017-09-25 10:34:11.206611695 +0200
 @@ -12,8 +12,8 @@
  template<typename T>
  class SharedMem
@@ -567,10 +449,10 @@ diff -up firefox-55.0/js/src/vm/SharedMem.h.1337988 firefox-55.0/js/src/vm/Share
  
      enum Sharedness {
          IsUnshared,
-diff -up firefox-55.0/js/xpconnect/src/XPCInlines.h.1337988 firefox-55.0/js/xpconnect/src/XPCInlines.h
---- firefox-55.0/js/xpconnect/src/XPCInlines.h.1337988	2017-07-31 18:20:46.000000000 +0200
-+++ firefox-55.0/js/xpconnect/src/XPCInlines.h	2017-08-02 14:33:41.738715458 +0200
-@@ -471,7 +471,7 @@ inline
+diff -up firefox-56.0/js/xpconnect/src/XPCInlines.h.1337988 firefox-56.0/js/xpconnect/src/XPCInlines.h
+--- firefox-56.0/js/xpconnect/src/XPCInlines.h.1337988	2017-09-14 22:16:03.000000000 +0200
++++ firefox-56.0/js/xpconnect/src/XPCInlines.h	2017-09-25 10:34:11.206611695 +0200
+@@ -465,7 +465,7 @@ inline
  void XPCWrappedNativeTearOff::JSObjectMoved(JSObject* obj, const JSObject* old)
  {
      MOZ_ASSERT(!IsMarked());
@@ -579,9 +461,9 @@ diff -up firefox-55.0/js/xpconnect/src/XPCInlines.h.1337988 firefox-55.0/js/xpco
      mJSObject = obj;
  }
  
-diff -up firefox-55.0/js/xpconnect/src/XPCWrappedNative.cpp.1337988 firefox-55.0/js/xpconnect/src/XPCWrappedNative.cpp
---- firefox-55.0/js/xpconnect/src/XPCWrappedNative.cpp.1337988	2017-08-02 14:33:41.738715458 +0200
-+++ firefox-55.0/js/xpconnect/src/XPCWrappedNative.cpp	2017-08-02 15:25:43.749014973 +0200
+diff -up firefox-56.0/js/xpconnect/src/XPCWrappedNative.cpp.1337988 firefox-56.0/js/xpconnect/src/XPCWrappedNative.cpp
+--- firefox-56.0/js/xpconnect/src/XPCWrappedNative.cpp.1337988	2017-09-14 22:16:03.000000000 +0200
++++ firefox-56.0/js/xpconnect/src/XPCWrappedNative.cpp	2017-09-25 10:34:11.207611692 +0200
 @@ -874,7 +874,7 @@ void
  XPCWrappedNative::FlatJSObjectMoved(JSObject* obj, const JSObject* old)
  {
@@ -591,9 +473,9 @@ diff -up firefox-55.0/js/xpconnect/src/XPCWrappedNative.cpp.1337988 firefox-55.0
  
      nsWrapperCache* cache = nullptr;
      CallQueryInterface(mIdentity, &cache);
-diff -up firefox-55.0/js/xpconnect/src/XPCWrappedNativeProto.cpp.1337988 firefox-55.0/js/xpconnect/src/XPCWrappedNativeProto.cpp
---- firefox-55.0/js/xpconnect/src/XPCWrappedNativeProto.cpp.1337988	2017-07-31 18:20:47.000000000 +0200
-+++ firefox-55.0/js/xpconnect/src/XPCWrappedNativeProto.cpp	2017-08-02 15:24:15.153207106 +0200
+diff -up firefox-56.0/js/xpconnect/src/XPCWrappedNativeProto.cpp.1337988 firefox-56.0/js/xpconnect/src/XPCWrappedNativeProto.cpp
+--- firefox-56.0/js/xpconnect/src/XPCWrappedNativeProto.cpp.1337988	2017-07-31 18:20:47.000000000 +0200
++++ firefox-56.0/js/xpconnect/src/XPCWrappedNativeProto.cpp	2017-09-25 10:34:11.207611692 +0200
 @@ -101,7 +101,7 @@ XPCWrappedNativeProto::CallPostCreatePro
  void
  XPCWrappedNativeProto::JSProtoObjectFinalized(js::FreeOp* fop, JSObject* obj)

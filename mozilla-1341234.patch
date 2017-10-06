@@ -1,0 +1,9 @@
+diff -up firefox-56.0/layout/style/bindgen.toml.in.old firefox-56.0/layout/style/bindgen.toml.in
+--- firefox-56.0/layout/style/bindgen.toml.in.old	2017-09-27 16:30:14.518213900 +0200
++++ firefox-56.0/layout/style/bindgen.toml.in	2017-09-27 16:30:38.089179153 +0200
+@@ -1,4 +1,5 @@
+ [build]
+ args = [
++    "/usr/include",
+     @BINDGEN_CFLAGS@
+ ]

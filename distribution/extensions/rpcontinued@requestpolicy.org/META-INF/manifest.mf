@@ -2,8 +2,8 @@ Manifest-Version: 1.0
 
 Name: install.rdf
 Digest-Algorithms: MD5 SHA1
-MD5-Digest: 0ISJA7pa2fZGNGtfOyeChw==
-SHA1-Digest: HhcA8EPjwVXsXW6pkjQsUbtW2kA=
+MD5-Digest: /RScRfU5WqcFu1DX1qWS3A==
+SHA1-Digest: oUFtn9B/OnT8YTxyt8UlurtB5N0=
 
 Name: chrome.manifest
 Digest-Algorithms: MD5 SHA1
@@ -22,8 +22,8 @@ SHA1-Digest: iDJpM8K+fZKkpeqnpi0kVupmPDk=
 
 Name: chrome/requestpolicy.jar
 Digest-Algorithms: MD5 SHA1
-MD5-Digest: ECXHUHZqOZQSQdS7HrRNUg==
-SHA1-Digest: cB5GKwnc4mCLu67FAJ1vxjKwewM=
+MD5-Digest: WSqD3Jn19+UytqZoEQJKQg==
+SHA1-Digest: rrVi5bNIJYiHhE1dn4RsZhmKoKU=
 
 Name: components/nsIRequestPolicy.xpt
 Digest-Algorithms: MD5 SHA1
@@ -32,8 +32,8 @@ SHA1-Digest: FP3BCMc8LmmffVLjZzBAyak75uY=
 
 Name: components/requestpolicyService.js
 Digest-Algorithms: MD5 SHA1
-MD5-Digest: YqUszLHLsTMPHU0dnE1eOg==
-SHA1-Digest: 5YKF09AjshtFaCBmLkGSy5NtuQE=
+MD5-Digest: zSbkpwyHrnK+2gOlQllCqQ==
+SHA1-Digest: Tv35QvLODxF1CAbaZ5+mhvayPog=
 
 Name: defaults/preferences/defaults.js
 Digest-Algorithms: MD5 SHA1

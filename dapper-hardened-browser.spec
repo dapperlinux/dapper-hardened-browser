@@ -69,7 +69,7 @@
 # we're building against could bring us some broken dependencies from time to time.
 #%global nspr_build_version %(pkg-config --silence-errors --modversion nspr 2>/dev/null || echo 65536)
 %global nspr_build_version %{nspr_version}
-%global nss_version 3.29.3
+%global nss_version 3.32.1
 #%global nss_build_version %(pkg-config --silence-errors --modversion nss 2>/dev/null || echo 65536) echo 65536)
 %global nss_build_version %{nss_version}
 %endif
@@ -100,14 +100,14 @@
 
 Summary:        Dapper Linux Hardened Browser
 Name:           dapper-hardened-browser
-Version:        55.0.3
-Release:        2%{?pre_tag}%{?dist}
+Version:        56.0
+Release:        4%{?pre_tag}%{?dist}
 URL:            https://github.com/dapperlinux/dapper-hardened/browser
 License:        MPLv1.1 or GPLv2+ or LGPLv2+
 Group:          Applications/Internet
 Source0:        https://archive.mozilla.org/pub/firefox/releases/%{version}%{?pre_version}/source/firefox-%{version}%{?pre_version}.source.tar.xz
 %if %{build_langpacks}
-#Source1: firefox-langpacks-%{version}%{?pre_version}-20170901.tar.xz
+#Source1: firefox-langpacks-%{version}%{?pre_version}-20170927.tar.xz
 %endif
 Source10:       firefox-mozconfig
 Source12:       browser-redhat-default-prefs.js
@@ -131,28 +131,25 @@ Patch0:         firefox-install-dir.patch
 Patch3:         mozilla-build-arm.patch
 # https://bugzilla.redhat.com/show_bug.cgi?id=814879#c3
 Patch18:        xulrunner-24.0-jemalloc-ppc.patch
-# workaround linking issue on s390 (JSContext::updateMallocCounter(size_t) not found)
-Patch19:        xulrunner-24.0-s390-inlines.patch
 Patch20:        firefox-build-prbool.patch
 Patch25:        rhbz-1219542-s390-build.patch
 Patch26:        build-icu-big-endian.patch
 Patch27:        mozilla-1335250.patch
-Patch28:        build-1360521-missing-cheddar.patch
+# Also fixes s390x: https://bugzilla.mozilla.org/show_bug.cgi?id=1376268
 Patch29:        build-big-endian.patch
 Patch30:        fedora-build.patch
 Patch31:        build-ppc64-s390x-curl.patch
 Patch32:        build-rust-ppc64le.patch
-Patch33:        build-ppc-s390-dom.patch
 Patch34:        build-cubeb-pulse-arm.patch
 Patch35:        build-ppc-jit.patch
 Patch36:        build-missing-xlocale-h.patch
 # Always feel lucky for unsupported platforms:
 # https://bugzilla.mozilla.org/show_bug.cgi?id=1347128
 Patch37:        build-jit-atomic-always-lucky.patch
+# Fixing missing cacheFlush when JS_CODEGEN_NONE is used (s390x)
+Patch38:        build-cacheFlush-missing.patch
 
 # Fedora specific patches
-# Unable to install addons from https pages
-Patch204:        rhbz-966424.patch
 Patch215:        firefox-enable-addons.patch
 Patch219:        rhbz-1173156.patch
 Patch221:        firefox-fedora-ua.patch
@@ -161,6 +158,7 @@ Patch225:        mozilla-1005640-accept-lang.patch
 #ARM run-time patch
 Patch226:        rhbz-1354671.patch
 Patch229:        firefox-nss-version.patch
+Patch230:        rhbz-1497932.patch
 
 
 # Upstream patches
@@ -171,6 +169,8 @@ Patch410:        mozilla-1321521.patch
 Patch411:        mozilla-1321521-2.patch
 Patch412:        mozilla-1337988.patch
 Patch413:        mozilla-1353817.patch
+Patch414:        mozilla-1341234.patch
+Patch415:        mozilla-1405267.patch
 
 # Debian patches
 Patch500:        mozilla-440908.patch
@@ -217,6 +217,10 @@ BuildRequires:  pkgconfig(libpulse)
 BuildRequires:  pkgconfig(icu-i18n)
 BuildRequires:  pkgconfig(gconf-2.0)
 BuildRequires:  yasm
+BuildRequires:  llvm
+BuildRequires:  llvm-devel
+BuildRequires:  clang
+BuildRequires:  clang-libs
 
 Requires:       mozilla-filesystem
 Requires:       p11-kit-trust
@@ -318,18 +322,15 @@ cd %{tarballdir}
 %patch0  -p1
 
 %patch18 -p1 -b .jemalloc-ppc
-#%patch19 -p2 -b .s390-inlines
 %patch20 -p1 -b .prbool
 %ifarch s390
 %patch25 -p1 -b .rhbz-1219542-s390
 %endif
-#%patch28 -p2 -b .1360521-missing-cheddar
 %patch29 -p1 -b .big-endian
 %patch30 -p1 -b .fedora-build
 %patch31 -p1 -b .ppc64-s390x-curl
 %patch32 -p1 -b .rust-ppc64le
-%patch33 -p1 -b .ppc-s390-dom
-%patch34 -p1 -b .cubeb-pulse-arm
+# don't need that %patch34 -p1 -b .cubeb-pulse-arm
 %ifarch ppc ppc64 ppc64le
 %patch35 -p1 -b .ppc-jit
 %patch36 -p2 -b .xlocale
@@ -341,7 +342,6 @@ cd %{tarballdir}
 # For branding specific patches.
 
 # Fedora patches
-#%patch204 -p2 -b .966424
 %patch215 -p1 -b .addons
 %patch219 -p2 -b .rhbz-1173156
 %patch221 -p2 -b .fedora-ua
@@ -351,6 +351,7 @@ cd %{tarballdir}
 %ifarch aarch64
 %patch226 -p1 -b .1354671
 %endif
+%patch230 -p1 -b .1497932
 
 %patch402 -p1 -b .1196777
 %patch406 -p1 -b .256180
@@ -362,6 +363,8 @@ cd %{tarballdir}
 %endif
 %endif
 %patch413 -p1 -b .1353817
+%patch414 -p1 -b .1341234
+%patch415 -p1 -b .1405267
 
 # Debian extension patch
 %patch500 -p1 -b .440908
@@ -835,6 +838,7 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 %{mozappdir}/%{name}
 %{mozappdir}/%{name}-bin
 %doc %{_mandir}/man1/*
+%dir %{_sysconfdir}/%{name}
 %dir %{_sysconfdir}/%{name}/*
 %dir %{_datadir}/mozilla/extensions/*
 %dir %{_libdir}/mozilla/extensions/*
@@ -902,8 +906,28 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 #---------------------------------------------------------------------
 
 %changelog
-* Mon Sep  4 2017 Matthew Ruffell <msr50@uclive.ac.nz> - 55.0.3-2
+* Fri Oct 6 2017 Matthew Ruffell <msr50@uclive.ac.nz> - 56.0-4
 - Dapper Hardened Browser Rebranded and Built
+
+* Wed Oct 4 2017 Martin Stransky <stransky@redhat.com> - 56.0-4
+- Fixed rhbz#1497932 - Plug-Ins for example flash fails
+  because of unresolved symbols
+
+* Fri Sep 29 2017 Martin Stransky <stransky@redhat.com> - 56.0-3
+- Enabled second arches.
+
+* Mon Sep 25 2017 Martin Stransky <stransky@redhat.com> - 56.0-2
+- Update to 56.0 (B6)
+
+* Fri Sep 15 2017 Martin Stransky <stransky@redhat.com> - 55.0.3-4
+- Added switch to build mozbz#1399611 and disable it now
+  for various regressions.
+
+* Thu Sep 14 2017 Martin Stransky <stransky@redhat.com> - 55.0.3-3
+- Added experimental patch for mozbz#1399611
+
+* Thu Sep 14 2017 Ville Skyttä <ville.skytta@iki.fi> - 55.0.3-2
+- Own the %%{_sysconfdir}/%%{name} dir
 
 * Fri Sep  1 2017 Jan Horak <jhorak@redhat.com> - 55.0.3-1
 - Update to 55.0.5
